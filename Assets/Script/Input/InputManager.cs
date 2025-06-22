@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem; // Important!
-using System.Collections.Generic; 
+using System.Collections.Generic;
 public class InputManager : MonoBehaviour
 {
     [Header("Dependencies")]
@@ -57,17 +57,14 @@ public class InputManager : MonoBehaviour
 
     private void SelectPiece(ChessPiece piece)
     {
-        
         DeselectPiece();
 
         _selectedPiece = piece;
         _selectedPiece.SelectPiece();
 
-        // Get the valid moves for this piece
         _validMoves = _selectedPiece.GetPossibleMoves(chessboard);
-        
-        Debug.Log($"Selected {piece.Type}. Possible moves: {_validMoves.Count}");
 
+        HighlightValidMoves();
     }
 
     private void DeselectPiece()
@@ -78,14 +75,14 @@ public class InputManager : MonoBehaviour
             _selectedPiece = null;
         }
         _validMoves?.Clear();
-        // TODO: Clear highlights
+        ClearHighlights();
     }
 
     private void AttemptMove(Vector2Int targetPosition)
     {
         if (_validMoves.Contains(targetPosition))
         {
-            Debug.Log($"Moving {_selectedPiece.Type} to {targetPosition}");
+            chessboard.MovePiece(_selectedPiece, targetPosition);
             
             DeselectPiece();
         }
@@ -93,6 +90,25 @@ public class InputManager : MonoBehaviour
         {
             Debug.Log($"Invalid move to {targetPosition}");
             DeselectPiece();
+        }
+    }
+    private void HighlightValidMoves()
+    {
+        if (_validMoves == null) return;
+        foreach (Vector2Int move in _validMoves)
+        {
+            chessboard.GetSquareAt(move)?.SetHighlight(true);
+        }
+    }
+
+    private void ClearHighlights()
+    {
+        for (int x = 0; x < Constants.BOARD_SIZE; x++)
+        {
+            for (int y = 0; y < Constants.BOARD_SIZE; y++)
+            {
+                chessboard.GetSquareAt(new Vector2Int(x, y))?.SetHighlight(false);
+            }
         }
     }
 }

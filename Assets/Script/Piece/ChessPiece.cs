@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
 public abstract class ChessPiece : MonoBehaviour
 {
     [SerializeField] private PieceType _pieceType;
@@ -8,7 +9,7 @@ public abstract class ChessPiece : MonoBehaviour
     public PieceType Type => _pieceType;
     public bool IsWhite => _isWhite;
 
-    protected Vector2Int _boardPosition;
+    [HideInInspector]public Vector2Int _boardPosition;
     protected bool _hasMoved = false;
 
     public abstract List<Vector2Int> GetPossibleMoves(Chessboard board);
@@ -29,5 +30,29 @@ public abstract class ChessPiece : MonoBehaviour
 
     public void DeselectPiece()
     {
+    }
+     public void MoveTo(Vector2Int newPosition, Vector3 worldPosition)
+    {
+        _boardPosition = newPosition;
+        _hasMoved = true;
+        
+        // Start a coroutine to handle the smooth visual movement
+        StartCoroutine(MoveCoroutine(worldPosition));
+    }
+
+    private IEnumerator MoveCoroutine(Vector3 targetPosition)
+    {
+        Vector3 startPosition = transform.position;
+        float timeElapsed = 0;
+        float duration = 0.2f; // How long the move should take in seconds
+
+        while (timeElapsed < duration)
+        {
+            transform.position = Vector3.Lerp(startPosition, targetPosition, timeElapsed / duration);
+            timeElapsed += Time.deltaTime;
+            yield return null; // Wait for the next frame
+        }
+
+        transform.position = targetPosition; // Ensure it ends at the exact position
     }
 }

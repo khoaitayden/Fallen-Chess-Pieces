@@ -3,6 +3,13 @@ using UnityEngine;
 public class BoardSquare : MonoBehaviour
 {
     private Vector2Int _boardPosition;
+    
+    [SerializeField] private GameObject highlightOverlay;
+
+    private void Awake()
+    {
+        SetHighlight(false);
+    }
 
     public void SetBoardPosition(Vector2Int position)
     {
@@ -15,8 +22,11 @@ public class BoardSquare : MonoBehaviour
         return _boardPosition;
     }
 
-    private void OnMouseDown()
+    public void SetHighlight(bool isActive)
     {
-        Debug.Log($"Clicked on square: {_boardPosition}");
+        if (highlightOverlay != null)
+        {
+            highlightOverlay.SetActive(isActive);
+        }
     }
 }

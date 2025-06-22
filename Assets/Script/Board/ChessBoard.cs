@@ -9,7 +9,7 @@ public class Chessboard : MonoBehaviour
     [SerializeField] private Vector3 boardOffset = Vector3.zero;
 
     private BoardSquare[,] _boardSquares = new BoardSquare[Constants.BOARD_SIZE, Constants.BOARD_SIZE];
-    
+
     private ChessPiece[,] _pieces = new ChessPiece[Constants.BOARD_SIZE, Constants.BOARD_SIZE];
 
     void Awake()
@@ -49,12 +49,38 @@ public class Chessboard : MonoBehaviour
     {
         if (position.x < 0 || position.x >= Constants.BOARD_SIZE || position.y < 0 || position.y >= Constants.BOARD_SIZE)
             return null;
-        
+
         return _pieces[position.x, position.y];
     }
 
     public void SetPiece(ChessPiece piece, Vector2Int position)
     {
         _pieces[position.x, position.y] = piece;
+    }
+
+    public BoardSquare GetSquareAt(Vector2Int position)
+    {
+        if (position.x < 0 || position.x >= Constants.BOARD_SIZE || position.y < 0 || position.y >= Constants.BOARD_SIZE)
+            return null;
+
+        return _boardSquares[position.x, position.y];
+    }
+        public void MovePiece(ChessPiece piece, Vector2Int newPosition)
+    {
+        Vector2Int oldPosition = piece.GetComponent<ChessPiece>()._boardPosition;
+
+        ChessPiece capturedPiece = GetPieceAt(newPosition);
+        if (capturedPiece != null)
+        {
+            Destroy(capturedPiece.gameObject);
+        }
+
+        // 1. Update the logical board array
+        _pieces[oldPosition.x, oldPosition.y] = null;
+        _pieces[newPosition.x, newPosition.y] = piece;
+
+        // 2. Tell the piece to update its internal state and visual position
+        Vector3 worldPosition = GetWorldPosition(newPosition);
+        piece.MoveTo(newPosition, worldPosition);
     }
 }
