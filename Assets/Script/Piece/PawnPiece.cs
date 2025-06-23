@@ -6,19 +6,24 @@ public class PawnPiece : ChessPiece
     public override List<Vector2Int> GetPossibleMoves(Chessboard board)
     {
         var moves = new List<Vector2Int>();
-        
-        int direction = IsWhite ? 1 : -1;
+        int direction = 1;;
+        if (!IsWhite)
+        {
+            direction = -1;
+        }
+       
+        Debug.Log(direction);
         
         // --- Single Step Forward ---
         Vector2Int forwardMove = new Vector2Int(_boardPosition.x, _boardPosition.y + direction);
+        // --- Double Step Forward ---
+        Vector2Int doubleForwardMove = new Vector2Int(_boardPosition.x, _boardPosition.y + (2 * direction));
         if (board.GetPieceAt(forwardMove) == null)
         {
             moves.Add(forwardMove);
-            
-            // --- Double Step Forward (only on first move) ---
+            //Check if can move forward two squares
             if (!_hasMoved)
             {
-                Vector2Int doubleForwardMove = new Vector2Int(_boardPosition.x, _boardPosition.y + (2 * direction));
                 if (board.GetPieceAt(doubleForwardMove) == null)
                 {
                     moves.Add(doubleForwardMove);

@@ -1,6 +1,7 @@
 using UnityEngine;
-using UnityEngine.InputSystem; // Important!
+using UnityEngine.InputSystem;
 using System.Collections.Generic;
+
 public class InputManager : MonoBehaviour
 {
     [Header("Dependencies")]
@@ -9,7 +10,7 @@ public class InputManager : MonoBehaviour
 
     private ChessControls _chessControls;
     private ChessPiece _selectedPiece;
-    private List<Vector2Int> _validMoves; // To store valid moves for the selected piece
+    private List<Vector2Int> _validMoves = new List<Vector2Int>(); // Valid moves for selected piece
 
     private void Awake()
     {
@@ -19,7 +20,6 @@ public class InputManager : MonoBehaviour
     private void OnEnable()
     {
         _chessControls.Enable();
-        // Subscribe our HandleClick method to the "performed" event of the Click action
         _chessControls.Player.Click.performed += HandleClick;
     }
 
@@ -31,14 +31,14 @@ public class InputManager : MonoBehaviour
 
     private void HandleClick(InputAction.CallbackContext context)
     {
-        // Read the mouse position from the PointerPosition action
+        // Get mouse position in screen space
         Vector2 mousePosition = _chessControls.Player.PointerPosition.ReadValue<Vector2>();
 
+        // Cast ray to detect what we clicked
         RaycastHit2D hit = Physics2D.Raycast(mainCamera.ScreenToWorldPoint(mousePosition), Vector2.zero);
 
         if (hit.collider == null)
         {
-            // Clicked on empty space, deselect anything
             DeselectPiece();
             return;
         }
@@ -48,7 +48,7 @@ public class InputManager : MonoBehaviour
         {
             SelectPiece(piece);
         }
-        // Check if we clicked on a square (and a piece is already selected)
+        // Else check if we clicked on a square while a piece is selected
         else if (_selectedPiece != null && hit.collider.TryGetComponent(out BoardSquare square))
         {
             AttemptMove(square.GetBoardPosition());
@@ -57,6 +57,13 @@ public class InputManager : MonoBehaviour
 
     private void SelectPiece(ChessPiece piece)
     {
+        // Prevent selecting if it's not the player's turn
+        if (piece.IsWhite != TurnManager.Instance.IsWhiteTurn)
+        {
+            Debug.Log("Not your turn!");
+            return;
+        }
+
         DeselectPiece();
 
         _selectedPiece = piece;
@@ -74,7 +81,8 @@ public class InputManager : MonoBehaviour
             _selectedPiece.DeselectPiece();
             _selectedPiece = null;
         }
-        _validMoves?.Clear();
+
+        _validMoves.Clear();
         ClearHighlights();
     }
 
@@ -83,7 +91,10 @@ public class InputManager : MonoBehaviour
         if (_validMoves.Contains(targetPosition))
         {
             chessboard.MovePiece(_selectedPiece, targetPosition);
-            
+
+            // Switch turn after successful move
+            TurnManager.Instance.SwitchTurn();
+
             DeselectPiece();
         }
         else
@@ -92,12 +103,16 @@ public class InputManager : MonoBehaviour
             DeselectPiece();
         }
     }
+
     private void HighlightValidMoves()
     {
-        if (_validMoves == null) return;
         foreach (Vector2Int move in _validMoves)
         {
-            chessboard.GetSquareAt(move)?.SetHighlight(true);
+            BoardSquare square = chessboard.GetSquareAt(move);
+            if (square != null)
+            {
+                square.SetHighlight(true);
+            }
         }
     }
 
@@ -107,7 +122,11 @@ public class InputManager : MonoBehaviour
         {
             for (int y = 0; y < Constants.BOARD_SIZE; y++)
             {
-                chessboard.GetSquareAt(new Vector2Int(x, y))?.SetHighlight(false);
+                BoardSquare square = chessboard.GetSquareAt(new Vector2Int(x, y));
+                if (square != null)
+                {
+                    square.SetHighlight(false);
+                }
             }
         }
     }
