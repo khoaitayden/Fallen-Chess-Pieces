@@ -31,13 +31,11 @@ public abstract class ChessPiece : MonoBehaviour
     {
     }
     
-     public void MoveTo(Vector2Int newPosition, Vector3 worldPosition)
+    public void MoveTo(Vector2Int newPosition, Vector3 worldPosition)
     {
         _boardPosition = newPosition;
         _hasMoved = true;
 
-        // Start a coroutine to handle the smooth visual movement
-        //More effect in the future
         StartCoroutine(MoveCoroutine(worldPosition));
     }
 

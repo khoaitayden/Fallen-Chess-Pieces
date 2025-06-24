@@ -12,7 +12,6 @@ public class PawnPiece : ChessPiece
             direction = -1;
         }
        
-        Debug.Log(direction);
         
         // --- Single Step Forward ---
         Vector2Int forwardMove = new Vector2Int(_boardPosition.x, _boardPosition.y + direction);

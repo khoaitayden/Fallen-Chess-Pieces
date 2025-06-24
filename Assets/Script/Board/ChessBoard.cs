@@ -65,22 +65,44 @@ public class Chessboard : MonoBehaviour
 
         return _boardSquares[position.x, position.y];
     }
-        public void MovePiece(ChessPiece piece, Vector2Int newPosition)
+
+    public void MovePiece(ChessPiece piece, Vector2Int newPosition)
     {
-        Vector2Int oldPosition = piece.GetComponent<ChessPiece>()._boardPosition;
+        Vector2Int oldPosition = piece._boardPosition;
 
         ChessPiece capturedPiece = GetPieceAt(newPosition);
         if (capturedPiece != null)
         {
-            Destroy(capturedPiece.gameObject);
+            Destroy(capturedPiece.gameObject); 
         }
-
-        // 1. Update the logical board array
+        //Update piece to board
         _pieces[oldPosition.x, oldPosition.y] = null;
         _pieces[newPosition.x, newPosition.y] = piece;
 
-        // 2. Tell the piece to update its internal state and visual position
         Vector3 worldPosition = GetWorldPosition(newPosition);
         piece.MoveTo(newPosition, worldPosition);
+    }
+
+    public ChessPiece SimulateMove(ChessPiece piece, Vector2Int newPosition)
+    {
+        Vector2Int oldPosition = piece._boardPosition;
+        ChessPiece capturedPiece = GetPieceAt(newPosition);
+
+        _pieces[newPosition.x, newPosition.y] = piece;
+        _pieces[oldPosition.x, oldPosition.y] = null;
+        
+        piece._boardPosition = newPosition;
+
+        return capturedPiece;
+    }
+
+    public void UndoSimulatedMove(ChessPiece piece, Vector2Int originalPosition, ChessPiece capturedPiece)
+    {
+        Vector2Int currentPosition = piece._boardPosition;
+
+        _pieces[originalPosition.x, originalPosition.y] = piece;
+        _pieces[currentPosition.x, currentPosition.y] = capturedPiece; 
+
+        piece._boardPosition = originalPosition;
     }
 }

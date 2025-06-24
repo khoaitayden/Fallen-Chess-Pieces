@@ -10,7 +10,7 @@ public class InputManager : MonoBehaviour
 
     private ChessControls _chessControls;
     private ChessPiece _selectedPiece;
-    private List<Vector2Int> _validMoves = new List<Vector2Int>(); // Valid moves for selected piece
+    private List<Vector2Int> _validMoves;
 
     private void Awake()
     {
@@ -31,88 +31,96 @@ public class InputManager : MonoBehaviour
 
     private void HandleClick(InputAction.CallbackContext context)
     {
-        // Get mouse position in screen space
-        Vector2 mousePosition = _chessControls.Player.PointerPosition.ReadValue<Vector2>();
-
-        // Cast ray to detect what we clicked
-        RaycastHit2D hit = Physics2D.Raycast(mainCamera.ScreenToWorldPoint(mousePosition), Vector2.zero);
-
-        if (hit.collider == null)
+        Vector2Int clickedPosition = GetClickedBoardPosition();
+        if (clickedPosition == new Vector2Int(-1, -1))
         {
+            if (_selectedPiece != null) DeselectPiece();
+            return;
+        }
+
+        if (_selectedPiece == null)
+        {
+            AttemptSelection(clickedPosition);
+        }
+        else
+        {
+            HandleAction(clickedPosition);
+        }
+    }
+    
+    private void AttemptSelection(Vector2Int position)
+    {
+        ChessPiece piece = chessboard.GetPieceAt(position);
+        if (piece != null && piece.IsWhite == TurnManager.Instance.IsWhiteTurn)
+        {
+            SelectPiece(piece);
+        }
+    }
+
+    private void HandleAction(Vector2Int position)
+    {
+        // Action 1: Try to move to the clicked square.
+        if (_validMoves.Contains(position))
+        {
+            chessboard.MovePiece(_selectedPiece, position);
+            TurnManager.Instance.SwitchTurn();
             DeselectPiece();
             return;
         }
 
-        // Check if we clicked on a piece
-        if (hit.collider.TryGetComponent(out ChessPiece piece))
+        // Action 2: Clicked on a different friendly piece. Switch selection.
+        ChessPiece clickedPiece = chessboard.GetPieceAt(position);
+        if (clickedPiece != null && clickedPiece.IsWhite == _selectedPiece.IsWhite)
         {
-            SelectPiece(piece);
+            DeselectPiece();
+            SelectPiece(clickedPiece);
+            return;
         }
-        // Else check if we clicked on a square while a piece is selected
-        else if (_selectedPiece != null && hit.collider.TryGetComponent(out BoardSquare square))
-        {
-            AttemptMove(square.GetBoardPosition());
-        }
+
+        // Action 3: Clicked anywhere else (invalid square, enemy piece not in a valid move). Deselect.
+        DeselectPiece();
     }
 
     private void SelectPiece(ChessPiece piece)
     {
-        // Prevent selecting if it's not the player's turn
-        if (piece.IsWhite != TurnManager.Instance.IsWhiteTurn)
-        {
-            Debug.Log("Not your turn!");
-            return;
-        }
-
-        DeselectPiece();
-
         _selectedPiece = piece;
-        _selectedPiece.SelectPiece();
-
-        _validMoves = _selectedPiece.GetPossibleMoves(chessboard);
-
+        _validMoves = MoveValidator.Instance.GetValidMoves(_selectedPiece);
         HighlightValidMoves();
+        _selectedPiece.SelectPiece();
     }
 
     private void DeselectPiece()
     {
-        if (_selectedPiece != null)
-        {
-            _selectedPiece.DeselectPiece();
-            _selectedPiece = null;
-        }
+        if (_selectedPiece == null) return;
 
-        _validMoves.Clear();
+        _selectedPiece.DeselectPiece();
+        _selectedPiece = null;
+        _validMoves?.Clear();
         ClearHighlights();
     }
 
-    private void AttemptMove(Vector2Int targetPosition)
+    private Vector2Int GetClickedBoardPosition()
     {
-        if (_validMoves.Contains(targetPosition))
-        {
-            chessboard.MovePiece(_selectedPiece, targetPosition);
+        Vector2 mousePosition = _chessControls.Player.PointerPosition.ReadValue<Vector2>();
+        RaycastHit2D hit = Physics2D.Raycast(mainCamera.ScreenToWorldPoint(mousePosition), Vector2.zero);
 
-            // Switch turn after successful move
-            TurnManager.Instance.SwitchTurn();
+        if (hit.collider == null) return new Vector2Int(-1, -1);
 
-            DeselectPiece();
-        }
-        else
-        {
-            Debug.Log($"Invalid move to {targetPosition}");
-            DeselectPiece();
-        }
+        BoardSquare square = hit.collider.GetComponent<BoardSquare>();
+        if (square != null) return square.GetBoardPosition();
+
+        ChessPiece piece = hit.collider.GetComponent<ChessPiece>();
+        if (piece != null) return piece._boardPosition;
+
+        return new Vector2Int(-1, -1);
     }
 
     private void HighlightValidMoves()
     {
+        if (_validMoves == null) return;
         foreach (Vector2Int move in _validMoves)
         {
-            BoardSquare square = chessboard.GetSquareAt(move);
-            if (square != null)
-            {
-                square.SetHighlight(true);
-            }
+            chessboard.GetSquareAt(move)?.SetHighlight(true);
         }
     }
 
@@ -122,11 +130,7 @@ public class InputManager : MonoBehaviour
         {
             for (int y = 0; y < Constants.BOARD_SIZE; y++)
             {
-                BoardSquare square = chessboard.GetSquareAt(new Vector2Int(x, y));
-                if (square != null)
-                {
-                    square.SetHighlight(false);
-                }
+                chessboard.GetSquareAt(new Vector2Int(x, y))?.SetHighlight(false);
             }
         }
     }
