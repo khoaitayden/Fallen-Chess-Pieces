@@ -422,6 +422,7 @@ GameObject:
   - component: {fileID: 1960839354}
   - component: {fileID: 1960839355}
   - component: {fileID: 1960839356}
+  - component: {fileID: 1960839357}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -508,6 +509,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   chessboard: {fileID: 1233312118}
+--- !u!114 &1960839357
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1960839351}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 131e582888518e4418ada350b7a8beb6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

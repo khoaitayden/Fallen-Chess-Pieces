@@ -24,7 +24,7 @@ public class MoveValidator : MonoBehaviour
     {
         List<Vector2Int> validMoves = new List<Vector2Int>();
         List<Vector2Int> possibleMoves = piece.GetPossibleMoves(chessboard);
-        
+
         Vector2Int originalPosition = piece._boardPosition;
         //Check king safety 
         foreach (Vector2Int move in possibleMoves)
@@ -43,11 +43,11 @@ public class MoveValidator : MonoBehaviour
     }
 
 
-    // Checks if King check.
+    // Checks if King check
     public bool IsInCheck(bool isWhitePlayer)
     {
         Vector2Int kingPosition = FindKingPosition(isWhitePlayer);
-        if (kingPosition == new Vector2Int(-1, -1)) return false; 
+        if (kingPosition == new Vector2Int(-1, -1)) return false;
 
         // Check if any enemy piece can attack the king's square
         for (int x = 0; x < Constants.BOARD_SIZE; x++)
@@ -60,13 +60,13 @@ public class MoveValidator : MonoBehaviour
                     List<Vector2Int> moves = piece.GetPossibleMoves(chessboard);
                     if (moves.Contains(kingPosition))
                     {
-                        return true; 
+                        return true;
                     }
                 }
             }
         }
 
-        return false; 
+        return false;
     }
 
     private Vector2Int FindKingPosition(bool isWhitePlayer)
@@ -83,5 +83,45 @@ public class MoveValidator : MonoBehaviour
             }
         }
         return new Vector2Int(-1, -1);
+    }
+    public bool IsCheckmate(bool isWhitePlayer)
+    {
+        if (!IsInCheck(isWhitePlayer))
+        {
+            return false;
+        }
+
+        return !HasAnyValidMoves(isWhitePlayer);
+    }
+
+    public bool IsStalemate(bool isWhitePlayer)
+    {
+        if (IsInCheck(isWhitePlayer))
+        {
+            return false;
+        }
+
+        return !HasAnyValidMoves(isWhitePlayer);
+    }
+
+    private bool HasAnyValidMoves(bool isWhitePlayer)
+    {
+        for (int x = 0; x < Constants.BOARD_SIZE; x++)
+        {
+            for (int y = 0; y < Constants.BOARD_SIZE; y++)
+            {
+                ChessPiece piece = chessboard.GetPieceAt(new Vector2Int(x, y));
+
+                if (piece != null && piece.IsWhite == isWhitePlayer)
+                {
+                    if (GetValidMoves(piece).Count > 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 }

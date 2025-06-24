@@ -22,10 +22,20 @@ public class TurnManager : MonoBehaviour
     {
         IsWhiteTurn = true;
     }
-
     public void SwitchTurn()
     {
+        bool previousPlayerIsWhite = IsWhiteTurn;
         IsWhiteTurn = !IsWhiteTurn;
+        
         Debug.Log(IsWhiteTurn ? "White's Turn" : "Black's Turn");
+
+        if (MoveValidator.Instance.IsCheckmate(IsWhiteTurn))
+        {
+            GameManager.Instance.EndGame(GameState.Checkmate, previousPlayerIsWhite);
+        }
+        else if (MoveValidator.Instance.IsStalemate(IsWhiteTurn))
+        {
+            GameManager.Instance.EndGame(GameState.Stalemate, false);
+        }
     }
 }

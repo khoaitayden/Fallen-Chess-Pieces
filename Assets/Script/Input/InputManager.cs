@@ -31,6 +31,8 @@ public class InputManager : MonoBehaviour
 
     private void HandleClick(InputAction.CallbackContext context)
     {
+        if (GameManager.Instance.CurrentState != GameState.Playing) return;
+
         Vector2Int clickedPosition = GetClickedBoardPosition();
         if (clickedPosition == new Vector2Int(-1, -1))
         {
