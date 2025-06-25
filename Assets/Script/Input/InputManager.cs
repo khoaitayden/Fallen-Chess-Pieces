@@ -61,16 +61,16 @@ public class InputManager : MonoBehaviour
 
     private void HandleAction(Vector2Int position)
     {
-        // Action 1: Try to move to the clicked square.
         if (_validMoves.Contains(position))
         {
             chessboard.MovePiece(_selectedPiece, position);
             TurnManager.Instance.SwitchTurn();
+            GameManager.Instance.CheckForGameEnd();
+
             DeselectPiece();
             return;
         }
 
-        // Action 2: Clicked on a different friendly piece. Switch selection.
         ChessPiece clickedPiece = chessboard.GetPieceAt(position);
         if (clickedPiece != null && clickedPiece.IsWhite == _selectedPiece.IsWhite)
         {
@@ -79,7 +79,6 @@ public class InputManager : MonoBehaviour
             return;
         }
 
-        // Action 3: Clicked anywhere else (invalid square, enemy piece not in a valid move). Deselect.
         DeselectPiece();
     }
 

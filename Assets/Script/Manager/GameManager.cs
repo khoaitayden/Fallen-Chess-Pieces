@@ -1,14 +1,10 @@
 using UnityEngine;
-
-
-
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
     public GameState CurrentState { get; private set; }
 
-    //Notify when change state
     public event System.Action<GameState> OnGameStateChanged;
 
     private void Awake()
@@ -39,7 +35,7 @@ public class GameManager : MonoBehaviour
         if (CurrentState == GameState.Playing)
         {
             CurrentState = finalState;
-            OnGameStateChanged?.Invoke(finalState); 
+            OnGameStateChanged?.Invoke(finalState);
 
             if (finalState == GameState.Checkmate)
             {
@@ -49,6 +45,21 @@ public class GameManager : MonoBehaviour
             {
                 Debug.Log("GAME OVER: STALEMATE! It's a draw.");
             }
+        }
+    }
+    public void CheckForGameEnd()
+    {
+        bool currentPlayerIsWhite = TurnManager.Instance.IsWhiteTurn;
+
+        if (MoveValidator.Instance.IsCheckmate(currentPlayerIsWhite))
+        {
+            bool winnerIsWhite = !currentPlayerIsWhite;
+            EndGame(GameState.Checkmate, winnerIsWhite);
+        }
+        else if (MoveValidator.Instance.IsStalemate(currentPlayerIsWhite))
+        {
+
+            EndGame(GameState.Stalemate, false);
         }
     }
 }
