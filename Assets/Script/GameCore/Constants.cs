@@ -9,4 +9,4 @@ public enum PieceType { Pawn, Rook, Knight, Bishop, Queen, King }
 public enum GameStatus { Playing, Check, Checkmate, Stalemate, Draw }
 public enum GameMode { Local, Online, AI }
 public enum MoveType { Normal, Castle, EnPassant, Promotion }
-public enum GameState { Playing, Checkmate, Stalemate, Draw }
+public enum GameState { Playing, Checkmate, Stalemate, Draw, Timeout}

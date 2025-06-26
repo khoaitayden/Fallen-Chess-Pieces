@@ -6,36 +6,67 @@ public class TurnManager : MonoBehaviour
 
     public bool IsWhiteTurn { get; private set; }
 
+    public float WhiteTime { get; private set; }
+    public float BlackTime { get; private set; }
+    private bool isTimerActive = false;
+
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-        }
-        else
-        {
-            Instance = this;
-        }
+        if (Instance != null && Instance != this) Destroy(gameObject);
+        else Instance = this;
     }
 
     void Start()
     {
-        IsWhiteTurn = true;
+        StartNewGame();
     }
+
+    public void StartNewGame()
+    {
+        IsWhiteTurn = true;
+        WhiteTime = Constants.DEFAULT_GAME_TIME;
+        BlackTime = Constants.DEFAULT_GAME_TIME;
+        isTimerActive = true;
+    }
+
+    void Update()
+    {
+        if (!isTimerActive) return;
+
+        if (IsWhiteTurn)
+        {
+            WhiteTime -= Time.deltaTime;
+            if (WhiteTime <= 0)
+            {
+                WhiteTime = 0;
+                HandleTimeout();
+            }
+        }
+        else
+        {
+            BlackTime -= Time.deltaTime;
+            if (BlackTime <= 0)
+            {
+                BlackTime = 0;
+                HandleTimeout();
+            }
+        }
+    }
+
     public void SwitchTurn()
     {
-        bool previousPlayerIsWhite = IsWhiteTurn;
         IsWhiteTurn = !IsWhiteTurn;
-        
-        Debug.Log(IsWhiteTurn ? "White's Turn" : "Black's Turn");
+    }
 
-        if (MoveValidator.Instance.IsCheckmate(IsWhiteTurn))
-        {
-            GameManager.Instance.EndGame(GameState.Checkmate, previousPlayerIsWhite);
-        }
-        else if (MoveValidator.Instance.IsStalemate(IsWhiteTurn))
-        {
-            GameManager.Instance.EndGame(GameState.Stalemate, false);
-        }
+    private void HandleTimeout()
+    {
+        isTimerActive = false;
+        bool winnerIsWhite = IsWhiteTurn; 
+        GameManager.Instance.EndGame(GameState.Timeout, winnerIsWhite);
+    }
+
+    public void StopTimer()
+    {
+        isTimerActive = false;
     }
 }

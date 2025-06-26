@@ -35,16 +35,8 @@ public class GameManager : MonoBehaviour
         if (CurrentState == GameState.Playing)
         {
             CurrentState = finalState;
+            TurnManager.Instance.StopTimer();
             OnGameStateChanged?.Invoke(finalState);
-
-            if (finalState == GameState.Checkmate)
-            {
-                Debug.Log($"GAME OVER: CHECKMATE! Winner: {(winnerIsWhite ? "White" : "Black")}");
-            }
-            else if (finalState == GameState.Stalemate)
-            {
-                Debug.Log("GAME OVER: STALEMATE! It's a draw.");
-            }
         }
     }
     public void CheckForGameEnd()

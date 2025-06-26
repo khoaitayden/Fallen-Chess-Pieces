@@ -42,7 +42,6 @@ public class UIManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        // Always unsubscribe to prevent memory leaks
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnGameStateChanged -= HandleGameStateChanged;
@@ -51,7 +50,7 @@ public class UIManager : MonoBehaviour
 
     private void HandleGameStateChanged(GameState newState)
     {
-        if (newState == GameState.Checkmate || newState == GameState.Stalemate)
+        if (newState == GameState.Checkmate || newState == GameState.Stalemate || newState == GameState.Timeout)
         {
             ShowGameOver(newState);
         }
@@ -74,7 +73,7 @@ public class UIManager : MonoBehaviour
             winnerText.text = $"Checkmate!\n{(winnerIsWhite ? "White" : "Black")} Wins!";
             
             winnerText.color = winnerIsWhite ? Color.white : Color.black;
-            winnerText.outlineWidth = 0.1f;
+            winnerText.outlineWidth = 0.3f;
             winnerText.outlineColor = winnerIsWhite ? Color.black : Color.white;
         }
         else if (finalState == GameState.Stalemate)
@@ -83,6 +82,14 @@ public class UIManager : MonoBehaviour
             
             winnerText.color = Color.green;
             winnerText.outlineWidth = 0f;
+        } else if (finalState == GameState.Timeout)
+        {
+            bool winnerIsWhite = TurnManager.Instance.BlackTime <= 0; 
+            winnerText.text = $"Time Out!\n{(winnerIsWhite ? "White" : "Black")} Wins!";
+            
+            winnerText.color = winnerIsWhite ? Color.white : Color.black;
+            winnerText.outlineWidth = 0.1f;
+            winnerText.outlineColor = winnerIsWhite ? Color.black : Color.white;
         }
     }
 

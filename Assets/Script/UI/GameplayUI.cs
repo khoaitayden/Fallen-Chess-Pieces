@@ -7,6 +7,8 @@ public class GameplayUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI turnIndicatorText;
     [SerializeField] private TextMeshProUGUI whiteChecked;
     [SerializeField] private TextMeshProUGUI blackChecked;
+    [SerializeField] private TextMeshProUGUI whiteTimerText;
+    [SerializeField] private TextMeshProUGUI blackTimerText;
 
     private void Update()
     {
@@ -40,6 +42,11 @@ public class GameplayUI : MonoBehaviour
 
     private void UpdateTimers()
     {
+        if (TurnManager.Instance != null)
+        {
+            whiteTimerText.text = FormatTime(TurnManager.Instance.WhiteTime);
+            blackTimerText.text = FormatTime(TurnManager.Instance.BlackTime);
+        }
     }
 
     private string FormatTime(float timeInSeconds)
