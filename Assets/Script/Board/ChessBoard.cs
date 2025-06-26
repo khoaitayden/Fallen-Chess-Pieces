@@ -70,17 +70,67 @@ public class Chessboard : MonoBehaviour
     {
         Vector2Int oldPosition = piece._boardPosition;
 
+        if (piece.Type == PieceType.King && Mathf.Abs(newPosition.x - oldPosition.x) == 2)
+        {
+            HandleCastle(piece, oldPosition, newPosition);
+            return;
+        }
+
+        if (piece.Type == PieceType.Pawn && newPosition == TurnManager.Instance.EnPassantTargetSquare)
+        {
+            // This is an en passant move
+            int direction = piece.IsWhite ? -1 : 1;
+            Vector2Int capturedPawnPos = new Vector2Int(newPosition.x, newPosition.y + direction);
+            ChessPiece capturedPawn = GetPieceAt(capturedPawnPos);
+            if (capturedPawn != null)
+            {
+                Destroy(capturedPawn.gameObject);
+                _pieces[capturedPawnPos.x, capturedPawnPos.y] = null;
+            }
+        }
+
         ChessPiece capturedPiece = GetPieceAt(newPosition);
         if (capturedPiece != null)
         {
             Destroy(capturedPiece.gameObject); 
         }
-        //Update piece to board
+
         _pieces[oldPosition.x, oldPosition.y] = null;
         _pieces[newPosition.x, newPosition.y] = piece;
 
         Vector3 worldPosition = GetWorldPosition(newPosition);
         piece.MoveTo(newPosition, worldPosition);
+    }
+
+    private void HandleCastle(ChessPiece king, Vector2Int oldKingPos, Vector2Int newKingPos)
+    {
+        _pieces[oldKingPos.x, oldKingPos.y] = null;
+        _pieces[newKingPos.x, newKingPos.y] = king;
+        king.MoveTo(newKingPos, GetWorldPosition(newKingPos));
+
+        Vector2Int rookOldPos, rookNewPos;
+        if (newKingPos.x > oldKingPos.x) 
+        {
+            rookOldPos = new Vector2Int(7, oldKingPos.y);
+            rookNewPos = new Vector2Int(newKingPos.x - 1, oldKingPos.y);
+        }
+        else 
+        {
+            rookOldPos = new Vector2Int(0, oldKingPos.y);
+            rookNewPos = new Vector2Int(newKingPos.x + 1, oldKingPos.y);
+        }
+
+        ChessPiece rook = GetPieceAt(rookOldPos);
+        if (rook != null)
+        {
+            _pieces[rookOldPos.x, rookOldPos.y] = null;
+            _pieces[rookNewPos.x, rookNewPos.y] = rook;
+            rook.MoveTo(rookNewPos, GetWorldPosition(rookNewPos));
+        }
+        else
+        {
+            Debug.LogError($"Castling failed: Rook not found at {rookOldPos}");
+        }
     }
 
     public ChessPiece SimulateMove(ChessPiece piece, Vector2Int newPosition)

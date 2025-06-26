@@ -3,40 +3,66 @@ using UnityEngine;
 
 public class KingPiece : ChessPiece
 {
+    public override List<Vector2Int> GetAttackMoves(Chessboard board)
+    {
+        var moves = new List<Vector2Int>();
+        Vector2Int currentPos = _boardPosition;
+
+        // Standard 8-direction King moves
+        for (int x = -1; x <= 1; x++)
+        {
+            for (int y = -1; y <= 1; y++)
+            {
+                if (x == 0 && y == 0) continue;
+
+                Vector2Int nextPos = new Vector2Int(currentPos.x + x, currentPos.y + y);
+                if (board.GetSquareAt(nextPos) != null)
+                {
+                    // For attack moves, we don't care if the piece is friendly or not
+                    // We just care that the king can "see" that square
+                    moves.Add(nextPos);
+                }
+            }
+        }
+        return moves;
+    }
     public override List<Vector2Int> GetPossibleMoves(Chessboard board)
     {
         var moves = new List<Vector2Int>();
+        Vector2Int currentPos = _boardPosition;
 
-        // All 8 possible directions the king can move
-        Vector2Int[] directions = new Vector2Int[]
+        // Standard 8-direction King moves
+        for (int x = -1; x <= 1; x++)
         {
-            new Vector2Int(0, 1),   // Up
-            new Vector2Int(1, 1),   // Up-Right
-            new Vector2Int(1, 0),   // Right
-            new Vector2Int(1, -1),  // Down-Right
-            new Vector2Int(0, -1),  // Down
-            new Vector2Int(-1, -1), // Down-Left
-            new Vector2Int(-1, 0),  // Left
-            new Vector2Int(-1, 1)   // Up-Left
-        };
-
-        foreach (var direction in directions)
-        {
-            Vector2Int nextPos = _boardPosition + direction;
-
-            // Check if the position is on the board
-            if (board.GetSquareAt(nextPos) == null)
-                continue;
-
-            ChessPiece pieceAtNextPos = board.GetPieceAt(nextPos);
-
-            // Allow move if square is empty or has an enemy piece
-            if (pieceAtNextPos == null || pieceAtNextPos.IsWhite != IsWhite)
+            for (int y = -1; y <= 1; y++)
             {
-                moves.Add(nextPos);
+                if (x == 0 && y == 0) continue;
+
+                Vector2Int nextPos = new Vector2Int(currentPos.x + x, currentPos.y + y);
+                if (board.GetSquareAt(nextPos) != null)
+                {
+                    ChessPiece piece = board.GetPieceAt(nextPos);
+                    if (piece == null || piece.IsWhite != this.IsWhite)
+                    {
+                        moves.Add(nextPos);
+                    }
+                }
             }
         }
 
+        if (!_hasMoved)
+        {
+            // Check Kingside
+            if (MoveValidator.Instance.CanCastleKingside(this))
+            {
+                moves.Add(new Vector2Int(_boardPosition.x + 2, _boardPosition.y));
+            }
+            // Check Queenside
+            if (MoveValidator.Instance.CanCastleQueenside(this))
+            {
+                moves.Add(new Vector2Int(_boardPosition.x - 2, _boardPosition.y));
+            }
+        }
         return moves;
     }
 }

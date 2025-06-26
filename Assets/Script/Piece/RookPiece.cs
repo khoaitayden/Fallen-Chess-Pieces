@@ -3,11 +3,15 @@ using UnityEngine;
 
 public class RookPiece : ChessPiece
 {
+    public override List<Vector2Int> GetAttackMoves(Chessboard board)
+    {
+        return GetPossibleMoves(board);
+    }
     public override List<Vector2Int> GetPossibleMoves(Chessboard board)
     {
         var moves = new List<Vector2Int>();
 
-        CheckDirection(moves, board, new Vector2Int(0, 1)); 
+        CheckDirection(moves, board, new Vector2Int(0, 1));
         CheckDirection(moves, board, new Vector2Int(0, -1));
         CheckDirection(moves, board, new Vector2Int(-1, 0));
         CheckDirection(moves, board, new Vector2Int(1, 0));

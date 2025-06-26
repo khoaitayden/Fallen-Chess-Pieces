@@ -3,6 +3,10 @@ using UnityEngine;
 
 public class QueenPiece : ChessPiece
 {
+    public override List<Vector2Int> GetAttackMoves(Chessboard board)
+    {
+        return GetPossibleMoves(board);
+    }
     public override List<Vector2Int> GetPossibleMoves(Chessboard board)
     {
         var moves = new List<Vector2Int>();
@@ -10,19 +14,19 @@ public class QueenPiece : ChessPiece
         // --- Straight directions---
         Vector2Int[] straightDirections = new Vector2Int[]
         {
-            new Vector2Int(0, 1),   
-            new Vector2Int(0, -1),  
-            new Vector2Int(-1, 0),  
-            new Vector2Int(1, 0)    
+            new Vector2Int(0, 1),
+            new Vector2Int(0, -1),
+            new Vector2Int(-1, 0),
+            new Vector2Int(1, 0)
         };
 
         // --- Diagonal directions---
         Vector2Int[] diagonalDirections = new Vector2Int[]
         {
-            new Vector2Int(1, 1),  
-            new Vector2Int(1, -1),  
-            new Vector2Int(-1, -1), 
-            new Vector2Int(-1, 1)  
+            new Vector2Int(1, 1),
+            new Vector2Int(1, -1),
+            new Vector2Int(-1, -1),
+            new Vector2Int(-1, 1)
         };
 
         // Combine both sets of directions

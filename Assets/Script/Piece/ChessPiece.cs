@@ -10,7 +10,7 @@ public abstract class ChessPiece : MonoBehaviour
 
 
     [HideInInspector]public Vector2Int _boardPosition;
-    protected bool _hasMoved = false;
+    public bool _hasMoved = false;
     public bool IsWhite=>_isWhite;
 
     public virtual void Initialize(bool isWhite, Vector2Int startPosition)
@@ -27,6 +27,7 @@ public abstract class ChessPiece : MonoBehaviour
         Debug.Log($"{_pieceType} at {_boardPosition} selected.");
     }
     public abstract List<Vector2Int> GetPossibleMoves(Chessboard board);
+    public abstract List<Vector2Int> GetAttackMoves(Chessboard board);
     public void DeselectPiece()
     {
     }

@@ -3,17 +3,20 @@ using UnityEngine;
 
 public class BishopPiece : ChessPiece
 {
+    public override List<Vector2Int> GetAttackMoves(Chessboard board)
+    {
+        return GetPossibleMoves(board);
+    }
     public override List<Vector2Int> GetPossibleMoves(Chessboard board)
     {
         var moves = new List<Vector2Int>();
 
-        // The four diagonal directions: NE, SE, SW, NW
         Vector2Int[] directions = new Vector2Int[]
         {
-            new Vector2Int(1, 1),   // Northeast
-            new Vector2Int(1, -1),  // Southeast
-            new Vector2Int(-1, -1), // Southwest
-            new Vector2Int(-1, 1)   // Northwest
+            new Vector2Int(1, 1),
+            new Vector2Int(1, -1), 
+            new Vector2Int(-1, -1),
+            new Vector2Int(-1, 1)  
         };
 
         foreach (var direction in directions)

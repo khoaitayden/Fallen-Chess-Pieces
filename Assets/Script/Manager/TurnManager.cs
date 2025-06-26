@@ -3,7 +3,7 @@ using UnityEngine;
 public class TurnManager : MonoBehaviour
 {
     public static TurnManager Instance { get; private set; }
-
+    public Vector2Int EnPassantTargetSquare { get; private set; }
     public bool IsWhiteTurn { get; private set; }
 
     public float WhiteTime { get; private set; }
@@ -27,6 +27,7 @@ public class TurnManager : MonoBehaviour
         WhiteTime = Constants.DEFAULT_GAME_TIME;
         BlackTime = Constants.DEFAULT_GAME_TIME;
         isTimerActive = true;
+        EnPassantTargetSquare = new Vector2Int(-1, -1);
     }
 
     void Update()
@@ -52,7 +53,20 @@ public class TurnManager : MonoBehaviour
             }
         }
     }
-
+    public void SetEnPassantTarget(ChessPiece piece, Vector2Int from, Vector2Int to)
+    {
+        if (piece.Type == PieceType.Pawn && Mathf.Abs(to.y - from.y) == 2)
+        {
+            // Pawn moved two squares, set the en passant target to the square behind it
+            int direction = (piece.IsWhite) ? -1 : 1;
+            EnPassantTargetSquare = new Vector2Int(to.x, to.y + direction);
+        }
+        else
+        {
+            // Any other move resets the en passant opportunity
+            EnPassantTargetSquare = new Vector2Int(-1, -1);
+        }
+    }
     public void SwitchTurn()
     {
         IsWhiteTurn = !IsWhiteTurn;

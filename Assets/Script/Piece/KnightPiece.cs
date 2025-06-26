@@ -3,6 +3,10 @@ using UnityEngine;
 
 public class KnightPiece : ChessPiece
 {
+    public override List<Vector2Int> GetAttackMoves(Chessboard board)
+    {
+        return GetPossibleMoves(board);
+    }
     public override List<Vector2Int> GetPossibleMoves(Chessboard board)
     {
         var moves = new List<Vector2Int>();

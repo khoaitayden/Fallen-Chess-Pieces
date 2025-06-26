@@ -63,7 +63,9 @@ public class InputManager : MonoBehaviour
     {
         if (_validMoves.Contains(position))
         {
+            Vector2Int oldPosition = _selectedPiece._boardPosition;
             chessboard.MovePiece(_selectedPiece, position);
+            TurnManager.Instance.SetEnPassantTarget(_selectedPiece, oldPosition, position);
             TurnManager.Instance.SwitchTurn();
             GameManager.Instance.CheckForGameEnd();
 
