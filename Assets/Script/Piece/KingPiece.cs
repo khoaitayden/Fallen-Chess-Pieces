@@ -18,8 +18,7 @@ public class KingPiece : ChessPiece
                 Vector2Int nextPos = new Vector2Int(currentPos.x + x, currentPos.y + y);
                 if (board.GetSquareAt(nextPos) != null)
                 {
-                    // For attack moves, we don't care if the piece is friendly or not
-                    // We just care that the king can "see" that square
+
                     moves.Add(nextPos);
                 }
             }

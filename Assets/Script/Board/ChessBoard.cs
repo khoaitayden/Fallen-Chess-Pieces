@@ -70,29 +70,32 @@ public class Chessboard : MonoBehaviour
     {
         Vector2Int oldPosition = piece._boardPosition;
 
+        //Check for Castling
         if (piece.Type == PieceType.King && Mathf.Abs(newPosition.x - oldPosition.x) == 2)
         {
+            // The HandleCastle method already moves both pieces and updates the array.
+            // We can exit the method immediately after.
             HandleCastle(piece, oldPosition, newPosition);
             return;
         }
 
+        //Check for En Passant capture
         if (piece.Type == PieceType.Pawn && newPosition == TurnManager.Instance.EnPassantTargetSquare)
         {
-            // This is an en passant move
             int direction = piece.IsWhite ? -1 : 1;
             Vector2Int capturedPawnPos = new Vector2Int(newPosition.x, newPosition.y + direction);
             ChessPiece capturedPawn = GetPieceAt(capturedPawnPos);
             if (capturedPawn != null)
             {
-                Destroy(capturedPawn.gameObject);
-                _pieces[capturedPawnPos.x, capturedPawnPos.y] = null;
+                PieceCaptureManager.Instance.CapturePiece(capturedPawn); 
+                _pieces[capturedPawnPos.x, capturedPawnPos.y] = null; 
             }
         }
 
         ChessPiece capturedPiece = GetPieceAt(newPosition);
         if (capturedPiece != null)
         {
-            Destroy(capturedPiece.gameObject); 
+            PieceCaptureManager.Instance.CapturePiece(capturedPiece);
         }
 
         _pieces[oldPosition.x, oldPosition.y] = null;

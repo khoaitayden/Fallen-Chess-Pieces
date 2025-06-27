@@ -43,7 +43,6 @@ public class MoveValidator : MonoBehaviour
     }
 
 
-    // Checks if King check
     public bool IsInCheck(bool isWhitePlayer)
     {
         Vector2Int kingPosition = FindKingPosition(isWhitePlayer);
@@ -166,7 +165,6 @@ public class MoveValidator : MonoBehaviour
         return true;
     }
 
-    // Checks if a specific square is under attack by the opponent
     private bool IsSquareAttacked(Vector2Int square, bool byWhitePlayer)
     {
         for (int x = 0; x < Constants.BOARD_SIZE; x++)
