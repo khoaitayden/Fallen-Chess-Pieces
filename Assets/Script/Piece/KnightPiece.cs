@@ -7,35 +7,31 @@ public class KnightPiece : ChessPiece
     {
         return GetPossibleMoves(board);
     }
+
     public override List<Vector2Int> GetPossibleMoves(Chessboard board)
     {
         var moves = new List<Vector2Int>();
 
-        // All 8 possible knight moves (L-shaped)
-        Vector2Int[] moveDirections = new Vector2Int[]
+        Vector2Int[] offsets = new Vector2Int[]
         {
-            new Vector2Int(1, 2),
-            new Vector2Int(2, 1),
-            new Vector2Int(2, -1),
-            new Vector2Int(1, -2),
-            new Vector2Int(-1, -2),
-            new Vector2Int(-2, -1),
-            new Vector2Int(-2, 1),
-            new Vector2Int(-1, 2)
+            new Vector2Int(1, 2), new Vector2Int(1, -2),
+            new Vector2Int(-1, 2), new Vector2Int(-1, -2),
+            new Vector2Int(2, 1), new Vector2Int(2, -1),
+            new Vector2Int(-2, 1), new Vector2Int(-2, -1)
         };
 
-        foreach (var direction in moveDirections)
+        foreach (var offset in offsets)
         {
-            Vector2Int nextPos = _boardPosition + direction;
+            Vector2Int nextPos = _boardPosition + offset;
 
-            // Check if the position is within bounds
             if (board.GetSquareAt(nextPos) == null)
+            {
                 continue;
+            }
 
             ChessPiece pieceAtNextPos = board.GetPieceAt(nextPos);
 
-            // If square is empty or has an enemy piece
-            if (pieceAtNextPos == null || pieceAtNextPos.IsWhite != IsWhite)
+            if (pieceAtNextPos == null || pieceAtNextPos.IsWhite != this.IsWhite)
             {
                 moves.Add(nextPos);
             }

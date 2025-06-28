@@ -73,8 +73,7 @@ public class Chessboard : MonoBehaviour
         //Check for Castling
         if (piece.Type == PieceType.King && Mathf.Abs(newPosition.x - oldPosition.x) == 2)
         {
-            // The HandleCastle method already moves both pieces and updates the array.
-            // We can exit the method immediately after.
+            // The HandleCastle method already moves both pieces and updates the array
             HandleCastle(piece, oldPosition, newPosition);
             return;
         }

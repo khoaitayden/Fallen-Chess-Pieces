@@ -50,8 +50,11 @@ public class GameManager : MonoBehaviour
         }
         else if (MoveValidator.Instance.IsStalemate(currentPlayerIsWhite))
         {
-
             EndGame(GameState.Stalemate, false);
+        }
+        else if (MoveValidator.Instance.HasInsufficientMaterial())
+        {
+            EndGame(GameState.Draw, false);
         }
     }
 }

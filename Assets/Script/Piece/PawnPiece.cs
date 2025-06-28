@@ -8,7 +8,6 @@ public class PawnPiece : ChessPiece
         var moves = new List<Vector2Int>();
         int direction = IsWhite ? 1 : -1;
 
-        // A pawn only attacks the two diagonal squares in front of it.
         Vector2Int captureRight = new Vector2Int(_boardPosition.x + 1, _boardPosition.y + direction);
         if (board.GetSquareAt(captureRight) != null)
         {
@@ -23,57 +22,64 @@ public class PawnPiece : ChessPiece
 
         return moves;
     }
+
     public override List<Vector2Int> GetPossibleMoves(Chessboard board)
     {
         var moves = new List<Vector2Int>();
         int direction = IsWhite ? 1 : -1;
 
-        // --- Single Step Forward ---
+        //Forward Move
         Vector2Int forwardMove = new Vector2Int(_boardPosition.x, _boardPosition.y + direction);
-        // --- Double Step Forward ---
-        Vector2Int doubleForwardMove = new Vector2Int(_boardPosition.x, _boardPosition.y + (2 * direction));
-        if (board.GetPieceAt(forwardMove) == null)
+        if (board.GetSquareAt(forwardMove) != null && board.GetPieceAt(forwardMove) == null)
         {
             moves.Add(forwardMove);
-            //Check if can move forward two squares
+
+            //Double Forward Move
             if (!_hasMoved)
             {
-                if (board.GetPieceAt(doubleForwardMove) == null)
+                Vector2Int doubleForwardMove = new Vector2Int(_boardPosition.x, _boardPosition.y + 2 * direction);
+                if (board.GetSquareAt(doubleForwardMove) != null && board.GetPieceAt(doubleForwardMove) == null)
                 {
                     moves.Add(doubleForwardMove);
                 }
             }
         }
 
-        // --- Diagonal Captures ---
-        // Capture Right
+        //Diagonal Capture Right
         Vector2Int captureRight = new Vector2Int(_boardPosition.x + 1, _boardPosition.y + direction);
-        ChessPiece pieceRight = board.GetPieceAt(captureRight);
-        if (pieceRight != null && pieceRight.IsWhite != this.IsWhite)
+        if (board.GetSquareAt(captureRight) != null)
         {
-            moves.Add(captureRight);
+            ChessPiece pieceRight = board.GetPieceAt(captureRight);
+            if (pieceRight != null && pieceRight.IsWhite != this.IsWhite)
+            {
+                moves.Add(captureRight);
+            }
         }
 
-        // Capture Left
+        //Diagonal Capture Left
         Vector2Int captureLeft = new Vector2Int(_boardPosition.x - 1, _boardPosition.y + direction);
-        ChessPiece pieceLeft = board.GetPieceAt(captureLeft);
-        if (pieceLeft != null && pieceLeft.IsWhite != this.IsWhite)
+        if (board.GetSquareAt(captureLeft) != null)
         {
-            moves.Add(captureLeft);
+            ChessPiece pieceLeft = board.GetPieceAt(captureLeft);
+            if (pieceLeft != null && pieceLeft.IsWhite != this.IsWhite)
+            {
+                moves.Add(captureLeft);
+            }
         }
 
-        //EN PASSANT
+        //En Passant
         Vector2Int enPassantTarget = TurnManager.Instance.EnPassantTargetSquare;
         if (enPassantTarget != new Vector2Int(-1, -1))
         {
-            // Check if pawn is on the correct rank for en passant
             if ((_boardPosition.y == 4 && IsWhite) || (_boardPosition.y == 3 && !IsWhite))
             {
-                // Check if the en passant target is directly diagonally adjacent
                 if ((enPassantTarget.x == _boardPosition.x + 1 && enPassantTarget.y == _boardPosition.y + direction) ||
                     (enPassantTarget.x == _boardPosition.x - 1 && enPassantTarget.y == _boardPosition.y + direction))
                 {
-                    moves.Add(enPassantTarget);
+                    if (board.GetSquareAt(enPassantTarget) != null)
+                    {
+                        moves.Add(enPassantTarget);
+                    }
                 }
             }
         }

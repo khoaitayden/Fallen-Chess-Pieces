@@ -7,35 +7,20 @@ public class QueenPiece : ChessPiece
     {
         return GetPossibleMoves(board);
     }
+
     public override List<Vector2Int> GetPossibleMoves(Chessboard board)
     {
         var moves = new List<Vector2Int>();
 
-        // --- Straight directions---
-        Vector2Int[] straightDirections = new Vector2Int[]
+        Vector2Int[] directions = new Vector2Int[]
         {
-            new Vector2Int(0, 1),
-            new Vector2Int(0, -1),
-            new Vector2Int(-1, 0),
-            new Vector2Int(1, 0)
+            new Vector2Int(0, 1), new Vector2Int(0, -1),
+            new Vector2Int(1, 0), new Vector2Int(-1, 0),
+            new Vector2Int(1, 1), new Vector2Int(1, -1),
+            new Vector2Int(-1, 1), new Vector2Int(-1, -1)
         };
 
-        // --- Diagonal directions---
-        Vector2Int[] diagonalDirections = new Vector2Int[]
-        {
-            new Vector2Int(1, 1),
-            new Vector2Int(1, -1),
-            new Vector2Int(-1, -1),
-            new Vector2Int(-1, 1)
-        };
-
-        // Combine both sets of directions
-        foreach (var direction in straightDirections)
-        {
-            CheckDirection(moves, board, direction);
-        }
-
-        foreach (var direction in diagonalDirections)
+        foreach (var direction in directions)
         {
             CheckDirection(moves, board, direction);
         }
@@ -47,19 +32,16 @@ public class QueenPiece : ChessPiece
     {
         Vector2Int nextPos = _boardPosition + direction;
 
-        while (true)
+        while (board.GetSquareAt(nextPos) != null)
         {
-            if (board.GetSquareAt(nextPos) == null)
-                break;
+            ChessPiece piece = board.GetPieceAt(nextPos);
 
-            ChessPiece pieceAtNextPos = board.GetPieceAt(nextPos);
-
-            if (pieceAtNextPos == null)
+            if (piece == null)
             {
                 moves.Add(nextPos);
                 nextPos += direction;
             }
-            else if (pieceAtNextPos.IsWhite != this.IsWhite)
+            else if (piece.IsWhite != this.IsWhite)
             {
                 moves.Add(nextPos);
                 break;

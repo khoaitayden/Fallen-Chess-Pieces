@@ -23,7 +23,7 @@ public class MoveValidator : MonoBehaviour
     public List<Vector2Int> GetValidMoves(ChessPiece piece)
     {
         List<Vector2Int> validMoves = new List<Vector2Int>();
-        List<Vector2Int> possibleMoves = piece.GetPossibleMoves(chessboard); 
+        List<Vector2Int> possibleMoves = piece.GetPossibleMoves(chessboard);
 
         Vector2Int originalPosition = piece._boardPosition;
 
@@ -128,7 +128,7 @@ public class MoveValidator : MonoBehaviour
     {
         // 1. King and Rook must not have moved
         if (king.Type != PieceType.King || king._hasMoved) return false;
-        
+
         ChessPiece rook = chessboard.GetPieceAt(new Vector2Int(7, king._boardPosition.y));
         if (rook == null || rook.Type != PieceType.Rook || rook._hasMoved) return false;
 
@@ -181,6 +181,73 @@ public class MoveValidator : MonoBehaviour
                 }
             }
         }
+        return false;
+    }
+    public bool HasInsufficientMaterial()
+    {
+        List<PieceType> whitePieces = new List<PieceType>();
+        List<PieceType> blackPieces = new List<PieceType>();
+
+        for (int x = 0; x < Constants.BOARD_SIZE; x++)
+        {
+            for (int y = 0; y < Constants.BOARD_SIZE; y++)
+            {
+                ChessPiece piece = chessboard.GetPieceAt(new Vector2Int(x, y));
+                if (piece != null)
+                {
+                    if (piece.IsWhite)
+                        whitePieces.Add(piece.Type);
+                    else
+                        blackPieces.Add(piece.Type);
+                }
+            }
+        }
+
+        if (whitePieces.Count == 1 && blackPieces.Count == 1)
+        {
+            return true;
+        }
+
+        if (whitePieces.Count == 2 && blackPieces.Count == 1)
+        {
+            if (whitePieces.Contains(PieceType.Bishop) || whitePieces.Contains(PieceType.Knight))
+                return true;
+        }
+        if (whitePieces.Count == 1 && blackPieces.Count == 2)
+        {
+            if (blackPieces.Contains(PieceType.Bishop) || blackPieces.Contains(PieceType.Knight))
+                return true;
+        }
+
+        if (whitePieces.Count == 2 && whitePieces.Contains(PieceType.Bishop) &&
+            blackPieces.Count == 2 && blackPieces.Contains(PieceType.Bishop))
+        {
+            ChessPiece whiteBishop = null;
+            ChessPiece blackBishop = null;
+            for (int x = 0; x < Constants.BOARD_SIZE; x++)
+            {
+                for (int y = 0; y < Constants.BOARD_SIZE; y++)
+                {
+                    ChessPiece p = chessboard.GetPieceAt(new Vector2Int(x, y));
+                    if (p != null && p.Type == PieceType.Bishop)
+                    {
+                        if (p.IsWhite) whiteBishop = p;
+                        else blackBishop = p;
+                    }
+                }
+            }
+
+            if (whiteBishop != null && blackBishop != null)
+            {
+                bool isWhiteBishopOnWhiteSquare = (whiteBishop._boardPosition.x + whiteBishop._boardPosition.y) % 2 != 0;
+                bool isBlackBishopOnWhiteSquare = (blackBishop._boardPosition.x + blackBishop._boardPosition.y) % 2 != 0;
+                if (isWhiteBishopOnWhiteSquare == isBlackBishopOnWhiteSquare)
+                {
+                    return true; 
+                }
+            }
+        }
+
         return false;
     }
 }

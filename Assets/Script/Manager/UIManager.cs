@@ -50,7 +50,7 @@ public class UIManager : MonoBehaviour
 
     private void HandleGameStateChanged(GameState newState)
     {
-        if (newState == GameState.Checkmate || newState == GameState.Stalemate || newState == GameState.Timeout)
+        if (newState == GameState.Checkmate || newState == GameState.Stalemate || newState == GameState.Timeout || newState == GameState.Draw)
         {
             ShowGameOver(newState);
         }
@@ -71,7 +71,7 @@ public class UIManager : MonoBehaviour
         {
             bool winnerIsWhite = !TurnManager.Instance.IsWhiteTurn;
             winnerText.text = $"Checkmate!\n{(winnerIsWhite ? "White" : "Black")} Wins!";
-            
+
             winnerText.color = winnerIsWhite ? Color.white : Color.black;
             winnerText.outlineWidth = 0.3f;
             winnerText.outlineColor = winnerIsWhite ? Color.black : Color.white;
@@ -79,17 +79,24 @@ public class UIManager : MonoBehaviour
         else if (finalState == GameState.Stalemate)
         {
             winnerText.text = "Stalemate!\nIt's a Draw!";
-            
+
             winnerText.color = Color.green;
             winnerText.outlineWidth = 0f;
-        } else if (finalState == GameState.Timeout)
+        }
+        else if (finalState == GameState.Timeout)
         {
-            bool winnerIsWhite = TurnManager.Instance.BlackTime <= 0; 
+            bool winnerIsWhite = TurnManager.Instance.BlackTime <= 0;
             winnerText.text = $"Time Out!\n{(winnerIsWhite ? "White" : "Black")} Wins!";
-            
+
             winnerText.color = winnerIsWhite ? Color.white : Color.black;
             winnerText.outlineWidth = 0.1f;
             winnerText.outlineColor = winnerIsWhite ? Color.black : Color.white;
+        }
+          else if (finalState == GameState.Draw)
+        {
+            winnerText.text = "Draw\nNo move to make";
+            winnerText.color = Color.green;
+            winnerText.outlineWidth = 0f;
         }
     }
 

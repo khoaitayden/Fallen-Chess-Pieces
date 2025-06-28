@@ -7,14 +7,21 @@ public class RookPiece : ChessPiece
     {
         return GetPossibleMoves(board);
     }
+
     public override List<Vector2Int> GetPossibleMoves(Chessboard board)
     {
         var moves = new List<Vector2Int>();
 
-        CheckDirection(moves, board, new Vector2Int(0, 1));
-        CheckDirection(moves, board, new Vector2Int(0, -1));
-        CheckDirection(moves, board, new Vector2Int(-1, 0));
-        CheckDirection(moves, board, new Vector2Int(1, 0));
+        Vector2Int[] directions = new Vector2Int[]
+        {
+            new Vector2Int(0, 1), new Vector2Int(0, -1),
+            new Vector2Int(1, 0), new Vector2Int(-1, 0)
+        };
+
+        foreach (var direction in directions)
+        {
+            CheckDirection(moves, board, direction);
+        }
 
         return moves;
     }
@@ -23,24 +30,23 @@ public class RookPiece : ChessPiece
     {
         Vector2Int nextPos = _boardPosition + direction;
 
-        while (board.GetSquareAt(nextPos) != null) 
+        while (board.GetSquareAt(nextPos) != null)
         {
-            ChessPiece pieceAtNextPos = board.GetPieceAt(nextPos);
-            
-            if (pieceAtNextPos == null)
+            ChessPiece piece = board.GetPieceAt(nextPos);
+
+            if (piece == null)
             {
                 moves.Add(nextPos);
                 nextPos += direction;
             }
-            else if (pieceAtNextPos.IsWhite != this.IsWhite)
+            else if (piece.IsWhite != this.IsWhite)
             {
                 moves.Add(nextPos);
                 break;
             }
-
             else
             {
-                break;
+                break; 
             }
         }
     }
