@@ -68,27 +68,33 @@ public class Chessboard : MonoBehaviour
 
     public void MovePiece(ChessPiece piece, Vector2Int newPosition)
     {
+        if (piece.Type == PieceType.Pawn)
+        {
+            bool isWhitePromotion = piece.IsWhite && newPosition.y == 7;
+            bool isBlackPromotion = !piece.IsWhite && newPosition.y == 0;
+
+            if (isWhitePromotion || isBlackPromotion)
+            {
+                StandardMove(piece, newPosition);
+                GameManager.Instance.InitiatePawnPromotion(piece);
+                return;
+            }
+        }
+
+        StandardMove(piece, newPosition);
+    }
+    private void StandardMove(ChessPiece piece, Vector2Int newPosition)
+    {
         Vector2Int oldPosition = piece._boardPosition;
 
-        //Check for Castling
         if (piece.Type == PieceType.King && Mathf.Abs(newPosition.x - oldPosition.x) == 2)
         {
-            // The HandleCastle method already moves both pieces and updates the array
             HandleCastle(piece, oldPosition, newPosition);
             return;
         }
-
-        //Check for En Passant capture
         if (piece.Type == PieceType.Pawn && newPosition == TurnManager.Instance.EnPassantTargetSquare)
         {
-            int direction = piece.IsWhite ? -1 : 1;
-            Vector2Int capturedPawnPos = new Vector2Int(newPosition.x, newPosition.y + direction);
-            ChessPiece capturedPawn = GetPieceAt(capturedPawnPos);
-            if (capturedPawn != null)
-            {
-                PieceCaptureManager.Instance.CapturePiece(capturedPawn); 
-                _pieces[capturedPawnPos.x, capturedPawnPos.y] = null; 
-            }
+            HandleEnPassant(piece, newPosition);
         }
 
         ChessPiece capturedPiece = GetPieceAt(newPosition);
@@ -103,7 +109,17 @@ public class Chessboard : MonoBehaviour
         Vector3 worldPosition = GetWorldPosition(newPosition);
         piece.MoveTo(newPosition, worldPosition);
     }
-
+    private void HandleEnPassant(ChessPiece pawn, Vector2Int targetSquare)
+    {
+        int direction = pawn.IsWhite ? -1 : 1;
+        Vector2Int capturedPawnPos = new Vector2Int(targetSquare.x, targetSquare.y + direction);
+        ChessPiece capturedPawn = GetPieceAt(capturedPawnPos);
+        if (capturedPawn != null)
+        {
+            PieceCaptureManager.Instance.CapturePiece(capturedPawn);
+            _pieces[capturedPawnPos.x, capturedPawnPos.y] = null;
+        }
+    }
     private void HandleCastle(ChessPiece king, Vector2Int oldKingPos, Vector2Int newKingPos)
     {
         _pieces[oldKingPos.x, oldKingPos.y] = null;
@@ -111,12 +127,12 @@ public class Chessboard : MonoBehaviour
         king.MoveTo(newKingPos, GetWorldPosition(newKingPos));
 
         Vector2Int rookOldPos, rookNewPos;
-        if (newKingPos.x > oldKingPos.x) 
+        if (newKingPos.x > oldKingPos.x)
         {
             rookOldPos = new Vector2Int(7, oldKingPos.y);
             rookNewPos = new Vector2Int(newKingPos.x - 1, oldKingPos.y);
         }
-        else 
+        else
         {
             rookOldPos = new Vector2Int(0, oldKingPos.y);
             rookNewPos = new Vector2Int(newKingPos.x + 1, oldKingPos.y);

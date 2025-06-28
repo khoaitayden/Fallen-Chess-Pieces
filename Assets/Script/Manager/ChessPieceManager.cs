@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class ChessPieceManager : MonoBehaviour
 {
+    public static ChessPieceManager Instance { get; private set; }
 
     [Header("Piece Prefabs")]
 
@@ -22,7 +23,18 @@ public class ChessPieceManager : MonoBehaviour
 
     [Header("Dependencies")]
     [SerializeField] private Chessboard chessboard;
-
+    
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Instance = this;
+        }
+    }
     void Start()
     {
         SpawnAllPieces();
@@ -59,16 +71,60 @@ public class ChessPieceManager : MonoBehaviour
         }
     }
 
-    void SpawnPiece(GameObject prefab, Vector2Int position, bool isWhite)
-    {
-        GameObject pieceObject = Instantiate(prefab, chessboard.transform);
-        
-        pieceObject.transform.position = chessboard.GetWorldPosition(position);
+    public void PromotePawn(ChessPiece pawn, PieceType newType)
+        {
+            if (pawn.Type != PieceType.Pawn) return;
 
-        ChessPiece piece = pieceObject.GetComponent<ChessPiece>();
-        // Pass the color to the Initialize method
-        piece.Initialize(isWhite, position); 
+            Vector2Int position = pawn._boardPosition;
+            bool isWhite = pawn.IsWhite;
 
-        chessboard.SetPiece(piece, position);
-    }
+            // 1. Remove the pawn from the board
+            chessboard.SetPiece(null, position);
+            Destroy(pawn.gameObject);
+
+            // 2. Get the correct prefab for the new piece
+            GameObject newPiecePrefab = GetPrefabForPiece(newType, isWhite);
+
+            // 3. Spawn the new piece
+            if (newPiecePrefab != null)
+            {
+                SpawnPiece(newPiecePrefab, position, isWhite);
+            }
+        }
+
+        private GameObject GetPrefabForPiece(PieceType type, bool isWhite)
+        {
+            if (isWhite)
+            {
+                switch (type)
+                {
+                    case PieceType.Queen: return whiteQueenPrefab;
+                    case PieceType.Rook: return whiteRookPrefab;
+                    case PieceType.Bishop: return whiteBishopPrefab;
+                    case PieceType.Knight: return whiteKnightPrefab;
+                }
+            }
+            else
+            {
+                switch (type)
+                {
+                    case PieceType.Queen: return blackQueenPrefab;
+                    case PieceType.Rook: return blackRookPrefab;
+                    case PieceType.Bishop: return blackBishopPrefab;
+                    case PieceType.Knight: return blackKnightPrefab;
+                }
+            }
+            return null;
+        }
+
+        void SpawnPiece(GameObject prefab, Vector2Int position, bool isWhite)
+        {
+            GameObject pieceObject = Instantiate(prefab, chessboard.transform);
+            pieceObject.transform.position = chessboard.GetWorldPosition(position);
+
+            ChessPiece piece = pieceObject.GetComponent<ChessPiece>();
+            piece.Initialize(isWhite, position);
+
+            chessboard.SetPiece(piece, position);
+        }
 }

@@ -1,19 +1,13 @@
 using UnityEngine;
-using UnityEngine.UI; // Required for UI elements like Text
-using TMPro; // Required for TextMeshPro elements
 
 public class UIManager : MonoBehaviour
 {
     public static UIManager Instance { get; private set; }
 
-    [Header("UI Panels")]
-    [SerializeField] private GameObject gameplayPanel;
-    [SerializeField] private GameObject gameOverPanel;
-
-    [Header("Game Over UI")]
-    [SerializeField] private TextMeshProUGUI winnerText;
-    [SerializeField] private Button rematchButton;
-    [SerializeField] private Button quitButton;
+    [Header("Child UI Controllers")]
+    [SerializeField] private GameplayUI gameplayUI;
+    [SerializeField] private GameOverUI gameOverUI;
+    [SerializeField] private PromotionUI promotionUI;
 
     private void Awake()
     {
@@ -25,15 +19,10 @@ public class UIManager : MonoBehaviour
         {
             Instance = this;
         }
-
-        rematchButton.onClick.AddListener(OnRematchClicked);
-        quitButton.onClick.AddListener(OnQuitClicked);
     }
 
     private void Start()
     {
-        ShowPanel(gameplayPanel);
-        
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnGameStateChanged += HandleGameStateChanged;
@@ -52,64 +41,25 @@ public class UIManager : MonoBehaviour
     {
         if (newState == GameState.Checkmate || newState == GameState.Stalemate || newState == GameState.Timeout || newState == GameState.Draw)
         {
-            ShowGameOver(newState);
+            gameOverUI.Show(newState);
         }
     }
 
-    private void ShowPanel(GameObject panelToShow)
+    public void ShowPromotionPanel(bool isWhite)
     {
-        gameplayPanel.SetActive(panelToShow == gameplayPanel);
-        gameOverPanel.SetActive(panelToShow == gameOverPanel);
-        // menuPanel.SetActive(panelToShow == menuPanel);
+        promotionUI.ShowPanel(isWhite);
     }
 
-    public void ShowGameOver(GameState finalState)
+    public void HidePromotionPanel()
     {
-        ShowPanel(gameOverPanel);
-
-        if (finalState == GameState.Checkmate)
-        {
-            bool winnerIsWhite = !TurnManager.Instance.IsWhiteTurn;
-            winnerText.text = $"Checkmate!\n{(winnerIsWhite ? "White" : "Black")} Wins!";
-
-            winnerText.color = winnerIsWhite ? Color.white : Color.black;
-            winnerText.outlineWidth = 0.3f;
-            winnerText.outlineColor = winnerIsWhite ? Color.black : Color.white;
-        }
-        else if (finalState == GameState.Stalemate)
-        {
-            winnerText.text = "Stalemate!\nIt's a Draw!";
-
-            winnerText.color = Color.green;
-            winnerText.outlineWidth = 0f;
-        }
-        else if (finalState == GameState.Timeout)
-        {
-            bool winnerIsWhite = TurnManager.Instance.BlackTime <= 0;
-            winnerText.text = $"Time Out!\n{(winnerIsWhite ? "White" : "Black")} Wins!";
-
-            winnerText.color = winnerIsWhite ? Color.white : Color.black;
-            winnerText.outlineWidth = 0.1f;
-            winnerText.outlineColor = winnerIsWhite ? Color.black : Color.white;
-        }
-          else if (finalState == GameState.Draw)
-        {
-            winnerText.text = "Draw\nNo move to make";
-            winnerText.color = Color.green;
-            winnerText.outlineWidth = 0f;
-        }
+        promotionUI.HidePanel();
     }
-
-    private void OnRematchClicked()
+    public void ShowGameplayPanel()
     {
-        UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+        gameplayUI.ShowPanel();
     }
-
-    private void OnQuitClicked()
+    public void HideGameplayPanel()
     {
-        Application.Quit();
-        #if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-        #endif
+        gameplayUI.HidePanel();
     }
 }

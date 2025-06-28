@@ -1,9 +1,10 @@
 using UnityEngine;
 using UnityEngine.UI; 
-using TMPro;        
+using TMPro;
 
 public class GameplayUI : MonoBehaviour
 {
+    public static GameplayUI Instance { get; private set; }
     [Header("UI Elements")]
     [SerializeField] private TextMeshProUGUI turnIndicatorText;
     [SerializeField] private TextMeshProUGUI whiteChecked;
@@ -16,6 +17,17 @@ public class GameplayUI : MonoBehaviour
     [SerializeField] private Transform whiteCapturedPiecesContainer;
     [SerializeField] private Transform blackCapturedPiecesContainer;
 
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Instance = this;
+        }
+    }
     private void Start()
     {
         if (PieceCaptureManager.Instance != null)
@@ -34,7 +46,6 @@ public class GameplayUI : MonoBehaviour
 
     private void Update()
     {
-        // These methods update every frame to show the current game state
         UpdateTurnIndicator();
         UpdateStatusText();
         UpdateTimers();
@@ -46,7 +57,7 @@ public class GameplayUI : MonoBehaviour
         GameObject iconObject = Instantiate(capturedPieceUIPrefab, container);
 
         SpriteRenderer pieceSpriteRenderer = piece.GetComponent<SpriteRenderer>();
-        
+
         Image iconImage = iconObject.GetComponent<Image>();
 
         if (pieceSpriteRenderer != null && iconImage != null)
@@ -104,5 +115,13 @@ public class GameplayUI : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
+    }
+    public void ShowPanel()
+    {
+        gameObject.SetActive(true);
+    }
+    public void HidePanel()
+    {
+        gameObject.SetActive(false);
     }
 }
