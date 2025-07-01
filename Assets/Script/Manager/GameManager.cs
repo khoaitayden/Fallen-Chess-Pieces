@@ -39,6 +39,7 @@ public class GameManager : MonoBehaviour
             CurrentState = finalState;
             TurnManager.Instance.StopTimer();
             OnGameStateChanged?.Invoke(finalState);
+            AudioManager.Instance.PlayGameEndSound(finalState);
         }
     }
     public void CheckForGameEnd()
@@ -58,6 +59,10 @@ public class GameManager : MonoBehaviour
         {
             EndGame(GameState.Draw, false);
         }
+        else if (MoveValidator.Instance.IsInCheck(currentPlayerIsWhite))
+        {
+            AudioManager.Instance.PlayCheckSound();
+        }
     }
     public void InitiatePawnPromotion(ChessPiece pawn)
     {
@@ -72,10 +77,10 @@ public class GameManager : MonoBehaviour
         ChessPieceManager.Instance.PromotePawn(_pawnToPromote, newPieceType);
         _pawnToPromote = null;
 
-        // Resume the game
+        
         CurrentState = GameState.Playing;
         UIManager.Instance.HidePromotionPanel();
-
+        AudioManager.Instance.PlayPromotionSound();
         CheckForGameEnd();
     }
 

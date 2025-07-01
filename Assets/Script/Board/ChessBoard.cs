@@ -86,7 +86,7 @@ public class Chessboard : MonoBehaviour
     private void StandardMove(ChessPiece piece, Vector2Int newPosition)
     {
         Vector2Int oldPosition = piece._boardPosition;
-
+        bool wasCapture = false;
         if (piece.Type == PieceType.King && Mathf.Abs(newPosition.x - oldPosition.x) == 2)
         {
             HandleCastle(piece, oldPosition, newPosition);
@@ -96,11 +96,16 @@ public class Chessboard : MonoBehaviour
         {
             HandleEnPassant(piece, newPosition);
         }
-
         ChessPiece capturedPiece = GetPieceAt(newPosition);
         if (capturedPiece != null)
         {
             PieceCaptureManager.Instance.CapturePiece(capturedPiece);
+            AudioManager.Instance.PlayCaptureSound();
+            wasCapture = true;
+        }
+        if (!wasCapture)
+        {
+            AudioManager.Instance.PlayMoveSound();
         }
 
         _pieces[oldPosition.x, oldPosition.y] = null;
@@ -118,6 +123,7 @@ public class Chessboard : MonoBehaviour
         {
             PieceCaptureManager.Instance.CapturePiece(capturedPawn);
             _pieces[capturedPawnPos.x, capturedPawnPos.y] = null;
+            AudioManager.Instance.PlayCaptureSound();
         }
     }
     private void HandleCastle(ChessPiece king, Vector2Int oldKingPos, Vector2Int newKingPos)
@@ -131,11 +137,13 @@ public class Chessboard : MonoBehaviour
         {
             rookOldPos = new Vector2Int(7, oldKingPos.y);
             rookNewPos = new Vector2Int(newKingPos.x - 1, oldKingPos.y);
+            AudioManager.Instance.PlayCastleSound();
         }
         else
         {
             rookOldPos = new Vector2Int(0, oldKingPos.y);
             rookNewPos = new Vector2Int(newKingPos.x + 1, oldKingPos.y);
+            AudioManager.Instance.PlayCastleSound();
         }
 
         ChessPiece rook = GetPieceAt(rookOldPos);
@@ -144,6 +152,7 @@ public class Chessboard : MonoBehaviour
             _pieces[rookOldPos.x, rookOldPos.y] = null;
             _pieces[rookNewPos.x, rookNewPos.y] = rook;
             rook.MoveTo(rookNewPos, GetWorldPosition(rookNewPos));
+            AudioManager.Instance.PlayCastleSound();
         }
         else
         {

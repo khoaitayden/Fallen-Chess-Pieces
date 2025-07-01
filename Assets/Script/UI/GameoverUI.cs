@@ -26,7 +26,6 @@ public class GameOverUI : MonoBehaviour
         rematchButton.onClick.AddListener(OnRematchClicked);
         quitButton.onClick.AddListener(OnQuitClicked);
 
-        gameObject.SetActive(false);
     }
 
     public void Show(GameState finalState)
@@ -58,7 +57,7 @@ public class GameOverUI : MonoBehaviour
                 break;
 
             case GameState.Draw:
-                winnerText.text = "Draw\nInsufficient Material";
+                winnerText.text = "Draw";
                 winnerText.color = Color.gray;
                 winnerText.outlineWidth = 0f;
                 break;
