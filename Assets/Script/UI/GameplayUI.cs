@@ -1,10 +1,11 @@
 using UnityEngine;
-using UnityEngine.UI; 
+using UnityEngine.UI;
 using TMPro;
 
 public class GameplayUI : MonoBehaviour
 {
     public static GameplayUI Instance { get; private set; }
+
     [Header("UI Elements")]
     [SerializeField] private TextMeshProUGUI turnIndicatorText;
     [SerializeField] private TextMeshProUGUI whiteChecked;
@@ -12,10 +13,17 @@ public class GameplayUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI whiteTimerText;
     [SerializeField] private TextMeshProUGUI blackTimerText;
 
+    [Header("Last Move Display")] 
+    [SerializeField] private TextMeshProUGUI moveNumberText;
+    [SerializeField] private TextMeshProUGUI whiteLastMoveText;
+    [SerializeField] private TextMeshProUGUI blackLastMoveText;
+
     [Header("Capture UI")]
     [SerializeField] private GameObject capturedPieceUIPrefab;
     [SerializeField] private Transform whiteCapturedPiecesContainer;
     [SerializeField] private Transform blackCapturedPiecesContainer;
+
+    private int moveCount = 0;
 
     private void Awake()
     {
@@ -28,12 +36,20 @@ public class GameplayUI : MonoBehaviour
             Instance = this;
         }
     }
+
     private void Start()
     {
         if (PieceCaptureManager.Instance != null)
         {
             PieceCaptureManager.Instance.OnPieceCaptured += HandlePieceCaptured;
         }
+
+        if (MoveHistory.Instance != null)
+        {
+            MoveHistory.Instance.OnMoveAdded += UpdateLastMoveDisplay;
+        }
+
+        ClearLastMoveDisplay();
     }
 
     private void OnDestroy()
@@ -41,6 +57,11 @@ public class GameplayUI : MonoBehaviour
         if (PieceCaptureManager.Instance != null)
         {
             PieceCaptureManager.Instance.OnPieceCaptured -= HandlePieceCaptured;
+        }
+
+        if (MoveHistory.Instance != null)
+        {
+            MoveHistory.Instance.OnMoveAdded -= UpdateLastMoveDisplay;
         }
     }
 
@@ -50,21 +71,7 @@ public class GameplayUI : MonoBehaviour
         UpdateStatusText();
         UpdateTimers();
     }
-    private void HandlePieceCaptured(ChessPiece piece)
-    {
-        Transform container = piece.IsWhite ? blackCapturedPiecesContainer : whiteCapturedPiecesContainer;
 
-        GameObject iconObject = Instantiate(capturedPieceUIPrefab, container);
-
-        SpriteRenderer pieceSpriteRenderer = piece.GetComponent<SpriteRenderer>();
-
-        Image iconImage = iconObject.GetComponent<Image>();
-
-        if (pieceSpriteRenderer != null && iconImage != null)
-        {
-            iconImage.sprite = pieceSpriteRenderer.sprite;
-        }
-    }
     private void UpdateTurnIndicator()
     {
         if (TurnManager.Instance == null) return;
@@ -105,6 +112,22 @@ public class GameplayUI : MonoBehaviour
         int seconds = Mathf.FloorToInt(timeInSeconds % 60);
         return string.Format("{0:00}:{1:00}", minutes, seconds);
     }
+
+    private void HandlePieceCaptured(ChessPiece piece)
+    {
+        Transform container = piece.IsWhite ? blackCapturedPiecesContainer : whiteCapturedPiecesContainer;
+
+        GameObject iconObject = Instantiate(capturedPieceUIPrefab, container);
+
+        SpriteRenderer pieceSpriteRenderer = piece.GetComponent<SpriteRenderer>();
+        Image iconImage = iconObject.GetComponent<Image>();
+
+        if (pieceSpriteRenderer != null && iconImage != null)
+        {
+            iconImage.sprite = pieceSpriteRenderer.sprite;
+        }
+    }
+
     public void ClearCapturedPieceUI()
     {
         foreach (Transform child in whiteCapturedPiecesContainer)
@@ -116,10 +139,39 @@ public class GameplayUI : MonoBehaviour
             Destroy(child.gameObject);
         }
     }
+
+    private void UpdateLastMoveDisplay(MoveData move)
+    {
+        bool isWhiteMove = (moveCount % 2 == 0);
+
+        if (isWhiteMove)
+        {
+            int currentMoveNumber = (moveCount / 2) + 1;
+            moveNumberText.text = $"Move: {currentMoveNumber}";
+            whiteLastMoveText.text = move.Notation;
+            blackLastMoveText.text = "...";
+        }
+        else
+        {
+            blackLastMoveText.text = move.Notation;
+        }
+
+        moveCount++;
+    }
+
+    public void ClearLastMoveDisplay()
+    {
+        moveNumberText.text = "Move: 1";
+        whiteLastMoveText.text = "-";
+        blackLastMoveText.text = "-";
+        moveCount = 0;
+    }
+
     public void ShowPanel()
     {
         gameObject.SetActive(true);
     }
+
     public void HidePanel()
     {
         gameObject.SetActive(false);

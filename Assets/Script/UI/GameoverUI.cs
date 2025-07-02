@@ -39,7 +39,7 @@ public class GameOverUI : MonoBehaviour
                 winnerText.text = $"Checkmate!\n{(winnerIsWhite ? "White" : "Black")} Wins!";
                 winnerText.color = winnerIsWhite ? Color.white : Color.black;
                 winnerText.outlineColor = winnerIsWhite ? Color.black : Color.white;
-                winnerText.outlineWidth = 0.1f;
+                winnerText.outlineWidth = 0.25f;
                 break;
 
             case GameState.Timeout:
@@ -47,7 +47,7 @@ public class GameOverUI : MonoBehaviour
                 winnerText.text = $"Time Out!\n{(timedOutWinnerIsWhite ? "White" : "Black")} Wins!";
                 winnerText.color = timedOutWinnerIsWhite ? Color.white : Color.black;
                 winnerText.outlineColor = timedOutWinnerIsWhite ? Color.black : Color.white;
-                winnerText.outlineWidth = 0.1f;
+                winnerText.outlineWidth = 0.25f;
                 break;
 
             case GameState.Stalemate:

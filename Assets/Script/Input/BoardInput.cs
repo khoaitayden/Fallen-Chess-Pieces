@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
 
-public class InputManager : MonoBehaviour
+public class BoardInput : MonoBehaviour
 {
     [Header("Dependencies")]
     [SerializeField] private Camera mainCamera;
@@ -61,26 +61,54 @@ public class InputManager : MonoBehaviour
 
     private void HandleAction(Vector2Int position)
     {
+        // If the clicked position is a valid move for the selected piece
         if (_validMoves.Contains(position))
         {
+            // --- GATHER MOVE INFO ---
             Vector2Int oldPosition = _selectedPiece._boardPosition;
-            chessboard.MovePiece(_selectedPiece, position);
-            TurnManager.Instance.SetEnPassantTarget(_selectedPiece, oldPosition, position);
-            TurnManager.Instance.SwitchTurn();
-            GameManager.Instance.CheckForGameEnd();
 
-            DeselectPiece();
-            return;
+            // Determine if this move is a capture (includes en passant for pawns)
+            bool isCapture = chessboard.GetPieceAt(position) != null ||
+                            (_selectedPiece.Type == PieceType.Pawn && 
+                            position == TurnManager.Instance.EnPassantTargetSquare);
+
+            // EXECUTE THE MOVE
+            chessboard.MovePiece(_selectedPiece, position);
+
+            // Update en passant target square if applicable
+            TurnManager.Instance.SetEnPassantTarget(_selectedPiece, oldPosition, position);
+
+            // Switch turn to the other player
+            TurnManager.Instance.SwitchTurn();
+
+            // CHECK FOR CHECK / CHECKMATE
+            bool isWhiteTurn = TurnManager.Instance.IsWhiteTurn;
+            bool isInCheck = MoveValidator.Instance.IsInCheck(isWhiteTurn);
+            bool isCheckmate = MoveValidator.Instance.IsCheckmate(isWhiteTurn);
+
+            // CONVERT MOVE TO NOTATION AND RECORD IT
+            string notation = MoveConverter.ToDescriptiveNotation(_selectedPiece, position);
+            MoveData move = new MoveData(_selectedPiece.Type, oldPosition, position, notation);
+            MoveHistory.Instance.AddMove(move);
+
+            // FINALIZE TURN
+            GameManager.Instance.CheckForGameEnd(); // Check if game has ended (e.g., checkmate, stalemate)
+            DeselectPiece(); // Clear current selection
+
+            return; // Exit early after handling the move
         }
 
+        // If it's not a valid move, check if the clicked square has a friendly piece
         ChessPiece clickedPiece = chessboard.GetPieceAt(position);
         if (clickedPiece != null && clickedPiece.IsWhite == _selectedPiece.IsWhite)
         {
+            // Deselect the current piece and select the new one (same color)
             DeselectPiece();
             SelectPiece(clickedPiece);
             return;
         }
 
+        // If none of the above conditions are met, just deselect the piece
         DeselectPiece();
     }
 

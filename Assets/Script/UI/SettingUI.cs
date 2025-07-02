@@ -14,4 +14,8 @@ public class SettingsUI : MonoBehaviour
         sfxSlider.onValueChanged.AddListener(AudioManager.Instance.SetSFXVolume);
         musicSlider.onValueChanged.AddListener(AudioManager.Instance.SetMusicVolume);
     }
+        public void ToggleVisibility()
+    {
+        gameObject.SetActive(!gameObject.activeSelf);
+    }
 }
