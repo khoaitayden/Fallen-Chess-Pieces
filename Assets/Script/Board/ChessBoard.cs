@@ -1,7 +1,8 @@
 using UnityEngine;
 
 public class Chessboard : MonoBehaviour
-{
+{    public static Chessboard Instance { get; private set; }
+
     [Header("Board Visuals")]
     [SerializeField] private GameObject whiteSquarePrefab;
     [SerializeField] private GameObject blackSquarePrefab;
@@ -9,17 +10,29 @@ public class Chessboard : MonoBehaviour
     [SerializeField] private Vector3 boardOffset = Vector3.zero;
 
     private BoardSquare[,] _boardSquares = new BoardSquare[Constants.BOARD_SIZE, Constants.BOARD_SIZE];
-
     private ChessPiece[,] _pieces = new ChessPiece[Constants.BOARD_SIZE, Constants.BOARD_SIZE];
 
     void Awake()
     {
+        // --- ADD THIS SINGLETON LOGIC ---
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Instance = this;
+        }
+        // --------------------------------
+
         GenerateBoard();
     }
 
-    void GenerateBoard()
+    public void GenerateBoard()
     {
+        // Clear any existing pieces or squares before generating a new board
         foreach (Transform child in transform) { Destroy(child.gameObject); }
+        _pieces = new ChessPiece[Constants.BOARD_SIZE, Constants.BOARD_SIZE]; // Also clear the logical array
 
         for (int row = 0; row < Constants.BOARD_SIZE; row++)
         {
@@ -42,8 +55,19 @@ public class Chessboard : MonoBehaviour
 
     public Vector3 GetWorldPosition(Vector2Int boardPos)
     {
-        return new Vector3(boardPos.x * squareSize, boardPos.y * squareSize, -1f) + boardOffset;
+        // This calculates the true world position by transforming the local position.
+        return transform.TransformPoint(GetLocalPosition(boardPos));
     }
+        public Vector3 GetLocalPosition(Vector2Int boardPos)
+    {
+        // We no longer add the board's world position or the offset here.
+        // We are just calculating the position relative to the Board's own pivot (0,0).
+        return new Vector3(boardPos.x * squareSize, boardPos.y * squareSize, -1f);
+    }
+
+    // We need to keep GetWorldPosition for things that need the true world coordinate,
+    // like the AIPlayer or a future networking system.
+
 
     public ChessPiece GetPieceAt(Vector2Int position)
     {
@@ -55,6 +79,9 @@ public class Chessboard : MonoBehaviour
 
     public void SetPiece(ChessPiece piece, Vector2Int position)
     {
+        if (position.x < 0 || position.x >= Constants.BOARD_SIZE || position.y < 0 || position.y >= Constants.BOARD_SIZE)
+            return;
+            
         _pieces[position.x, position.y] = piece;
     }
 
@@ -83,27 +110,37 @@ public class Chessboard : MonoBehaviour
 
         StandardMove(piece, newPosition);
     }
+
     private void StandardMove(ChessPiece piece, Vector2Int newPosition)
     {
         Vector2Int oldPosition = piece._boardPosition;
         bool wasCapture = false;
+
         if (piece.Type == PieceType.King && Mathf.Abs(newPosition.x - oldPosition.x) == 2)
         {
             HandleCastle(piece, oldPosition, newPosition);
-            return;
+            return; // Castle handles its own sounds and moves
         }
+
         if (piece.Type == PieceType.Pawn && newPosition == TurnManager.Instance.EnPassantTargetSquare)
         {
             HandleEnPassant(piece, newPosition);
+            wasCapture = true; // En passant is a capture
         }
+
         ChessPiece capturedPiece = GetPieceAt(newPosition);
         if (capturedPiece != null)
         {
             PieceCaptureManager.Instance.CapturePiece(capturedPiece);
-            AudioManager.Instance.PlayCaptureSound();
             wasCapture = true;
         }
-        if (!wasCapture)
+
+        // Play sound based on whether a capture occurred
+        if (wasCapture)
+        {
+            AudioManager.Instance.PlayCaptureSound();
+        }
+        else
         {
             AudioManager.Instance.PlayMoveSound();
         }
@@ -111,9 +148,10 @@ public class Chessboard : MonoBehaviour
         _pieces[oldPosition.x, oldPosition.y] = null;
         _pieces[newPosition.x, newPosition.y] = piece;
 
-        Vector3 worldPosition = GetWorldPosition(newPosition);
-        piece.MoveTo(newPosition, worldPosition);
+        Vector3 localPos = GetLocalPosition(newPosition);
+        piece.MoveTo(newPosition, localPos);
     }
+
     private void HandleEnPassant(ChessPiece pawn, Vector2Int targetSquare)
     {
         int direction = pawn.IsWhite ? -1 : 1;
@@ -123,27 +161,25 @@ public class Chessboard : MonoBehaviour
         {
             PieceCaptureManager.Instance.CapturePiece(capturedPawn);
             _pieces[capturedPawnPos.x, capturedPawnPos.y] = null;
-            AudioManager.Instance.PlayCaptureSound();
         }
     }
+
     private void HandleCastle(ChessPiece king, Vector2Int oldKingPos, Vector2Int newKingPos)
     {
         _pieces[oldKingPos.x, oldKingPos.y] = null;
         _pieces[newKingPos.x, newKingPos.y] = king;
-        king.MoveTo(newKingPos, GetWorldPosition(newKingPos));
+        king.MoveTo(newKingPos, GetLocalPosition(newKingPos));
 
         Vector2Int rookOldPos, rookNewPos;
         if (newKingPos.x > oldKingPos.x)
         {
             rookOldPos = new Vector2Int(7, oldKingPos.y);
             rookNewPos = new Vector2Int(newKingPos.x - 1, oldKingPos.y);
-            AudioManager.Instance.PlayCastleSound();
         }
         else
         {
             rookOldPos = new Vector2Int(0, oldKingPos.y);
             rookNewPos = new Vector2Int(newKingPos.x + 1, oldKingPos.y);
-            AudioManager.Instance.PlayCastleSound();
         }
 
         ChessPiece rook = GetPieceAt(rookOldPos);
@@ -151,7 +187,7 @@ public class Chessboard : MonoBehaviour
         {
             _pieces[rookOldPos.x, rookOldPos.y] = null;
             _pieces[rookNewPos.x, rookNewPos.y] = rook;
-            rook.MoveTo(rookNewPos, GetWorldPosition(rookNewPos));
+            rook.MoveTo(rookNewPos, GetLocalPosition(rookNewPos));
             AudioManager.Instance.PlayCastleSound();
         }
         else

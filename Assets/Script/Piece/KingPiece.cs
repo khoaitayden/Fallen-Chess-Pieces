@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class KingPiece : ChessPiece
+public class KingPiece : ChessPiece, IClickable
 {
     public override List<Vector2Int> GetAttackMoves(Chessboard board)
     {

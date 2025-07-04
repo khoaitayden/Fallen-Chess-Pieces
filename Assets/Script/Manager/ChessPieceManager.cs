@@ -40,7 +40,7 @@ public class ChessPieceManager : MonoBehaviour
         SpawnAllPieces();
     }
 
-    void SpawnAllPieces()
+    public void SpawnAllPieces()
     {
         // Spawn White Pieces
         SpawnPiece(whiteRookPrefab,   new Vector2Int(0, 0), true);

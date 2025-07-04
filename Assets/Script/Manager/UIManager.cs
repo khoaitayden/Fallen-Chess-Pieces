@@ -4,7 +4,8 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager Instance { get; private set; }
 
-    [Header("Child UI Controllers")]
+    [Header("UI Controllers")]
+    [SerializeField] private MainMenuUI mainMenuUI;
     [SerializeField] private GameplayUI gameplayUI;
     [SerializeField] private GameOverUI gameOverUI;
     [SerializeField] private PromotionUI promotionUI;
@@ -23,6 +24,8 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
+        // When the game first starts, show the main menu.
+        ShowMenuPanel();
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnGameStateChanged += HandleGameStateChanged;
@@ -39,10 +42,31 @@ public class UIManager : MonoBehaviour
 
     private void HandleGameStateChanged(GameState newState)
     {
+        // When the game ends, show the game over screen on top of the gameplay screen.
         if (newState == GameState.Checkmate || newState == GameState.Stalemate || newState == GameState.Timeout || newState == GameState.Draw)
         {
             gameOverUI.Show(newState);
         }
+    }
+
+    // --- PANEL MANAGEMENT METHODS ---
+    public void ShowMenuPanel()
+    {
+        mainMenuUI.Show();
+        gameplayUI.gameObject.SetActive(false); // Hide the gameplay UI
+    }
+
+    public void ShowGameplayPanel()
+    {
+        mainMenuUI.Hide();
+        gameplayUI.gameObject.SetActive(true); // Show the gameplay UI
+        // Also call the ShowPanel method if it exists
+        gameplayUI.ShowPanel();
+    }
+
+    public void HideGameplayPanel()
+    {
+        gameplayUI.HidePanel();
     }
 
     public void ShowPromotionPanel(bool isWhite)
@@ -53,13 +77,5 @@ public class UIManager : MonoBehaviour
     public void HidePromotionPanel()
     {
         promotionUI.HidePanel();
-    }
-    public void ShowGameplayPanel()
-    {
-        gameplayUI.ShowPanel();
-    }
-    public void HideGameplayPanel()
-    {
-        gameplayUI.HidePanel();
     }
 }

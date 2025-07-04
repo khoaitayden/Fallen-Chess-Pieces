@@ -1,12 +1,20 @@
 using UnityEngine;
+
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
+    public GameMode CurrentGameMode { get; private set; }
     public GameState CurrentState { get; private set; }
+
+    // --- PLAYER MANAGEMENT ---
+    private Player whitePlayer;
+    private Player blackPlayer;
+    // -------------------------
 
     public event System.Action<GameState> OnGameStateChanged;
     private ChessPiece _pawnToPromote;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -21,27 +29,78 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        StartNewGame();
+        // The GameManager no longer starts a game by default.
+        // It waits for a button press from the MenuUI.
     }
 
-    public void StartNewGame()
+    public void StartNewGame(GameMode mode)
     {
-        CurrentState = GameState.Playing;
-        UIManager.Instance.ShowGameplayPanel();
-        Debug.Log("New game started. It's White's turn.");
+        CurrentGameMode = mode;
 
+        // --- CREATE PLAYERS BASED ON MODE ---
+        switch (CurrentGameMode)
+        {
+            case GameMode.Local:
+                whitePlayer = new HumanPlayer(true);
+                blackPlayer = new HumanPlayer(false);
+                BoardPresenter.Instance.OrientBoardToPlayer(true); 
+                break;
+            case GameMode.AI:
+                whitePlayer = new HumanPlayer(true);
+                blackPlayer = new AIPlayer(false); // Example: Player is White, AI is Black
+                break;
+            case GameMode.Online:
+                // This would be handled by your networking logic later
+                // For now, default to local players
+                whitePlayer = new HumanPlayer(true);
+                blackPlayer = new HumanPlayer(false);
+                break;
+        }
+        // ------------------------------------ 
+
+        // --- RESET UI AND GAME STATE ---
+        // Clear history and captured pieces from the last game.
+        MoveHistory.Instance.ClearHistory();
+        GameplayUI.Instance.ClearLastMoveDisplay();
+        PieceCaptureManager.Instance.ClearCapturedLists();
+        GameplayUI.Instance.ClearCapturedPieceUI();
+
+        // Reset the board visuals and piece positions
+        Chessboard.Instance.GenerateBoard();
+        ChessPieceManager.Instance.SpawnAllPieces();
+
+        // Reset the timers
+        TurnManager.Instance.StartNewGame();
+
+        // Tell the UIManager to switch to the gameplay view.
+        UIManager.Instance.ShowGameplayPanel();
+
+        ChangeState(GameState.Playing);
+        Debug.Log($"New game started in {CurrentGameMode} mode. It's White's turn.");
+        
+        BoardPresenter.Instance.OrientBoardToPlayer(true);
+        NotifyCurrentPlayer();
+    }
+
+    // This method is called after every turn switch
+    public void NotifyCurrentPlayer()
+    {
+        if (CurrentState != GameState.Playing) return;
+
+        Player currentPlayer = TurnManager.Instance.IsWhiteTurn ? whitePlayer : blackPlayer;
+        currentPlayer.OnTurnStart();
     }
 
     public void EndGame(GameState finalState, bool winnerIsWhite)
     {
         if (CurrentState == GameState.Playing)
         {
-            CurrentState = finalState;
+            ChangeState(finalState);
             TurnManager.Instance.StopTimer();
-            OnGameStateChanged?.Invoke(finalState);
             AudioManager.Instance.PlayGameEndSound(finalState);
         }
     }
+
     public void CheckForGameEnd()
     {
         bool currentPlayerIsWhite = TurnManager.Instance.IsWhiteTurn;
@@ -64,12 +123,14 @@ public class GameManager : MonoBehaviour
             AudioManager.Instance.PlayCheckSound();
         }
     }
+
     public void InitiatePawnPromotion(ChessPiece pawn)
     {
         _pawnToPromote = pawn;
-        CurrentState = GameState.Promotion;
+        ChangeState(GameState.Promotion);
         UIManager.Instance.ShowPromotionPanel(pawn.IsWhite);
     }
+
     public void FinalizePawnPromotion(PieceType newPieceType)
     {
         if (_pawnToPromote == null) return;
@@ -77,11 +138,32 @@ public class GameManager : MonoBehaviour
         ChessPieceManager.Instance.PromotePawn(_pawnToPromote, newPieceType);
         _pawnToPromote = null;
 
-        
-        CurrentState = GameState.Playing;
+        ChangeState(GameState.Playing);
         UIManager.Instance.HidePromotionPanel();
         AudioManager.Instance.PlayPromotionSound();
         CheckForGameEnd();
     }
 
+    private void ChangeState(GameState newState)
+    {
+        CurrentState = newState;
+        OnGameStateChanged?.Invoke(newState);
+    }
+
+    // --- HELPER METHODS FOR PLAYER ACCESS ---
+    public Player GetCurrentPlayer()
+    {
+        return TurnManager.Instance.IsWhiteTurn ? whitePlayer : blackPlayer;
+    }
+
+    public Player GetWhitePlayer()
+    {
+        return whitePlayer;
+    }
+
+    public Player GetBlackPlayer()
+    {
+        return blackPlayer;
+    }
+    // ----------------------------------------
 }

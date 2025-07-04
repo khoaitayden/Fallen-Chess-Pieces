@@ -70,6 +70,10 @@ public class TurnManager : MonoBehaviour
     public void SwitchTurn()
     {
         IsWhiteTurn = !IsWhiteTurn;
+        if (GameManager.Instance.CurrentGameMode == GameMode.Local)
+        {
+            BoardPresenter.Instance.OrientBoardToPlayer(IsWhiteTurn);
+        }
     }
 
     private void HandleTimeout()

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class BoardSquare : MonoBehaviour
+public class BoardSquare : MonoBehaviour, IClickable
 {
     private Vector2Int _boardPosition;
     
