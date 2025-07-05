@@ -110,6 +110,30 @@ public class Chessboard : MonoBehaviour
 
         StandardMove(piece, newPosition);
     }
+
+    public BoardState CreateBoardState()
+    {
+        BoardState state = new BoardState();
+        for (int x = 0; x < Constants.BOARD_SIZE; x++)
+        {
+            for (int y = 0; y < Constants.BOARD_SIZE; y++)
+            {
+                ChessPiece piece = _pieces[x, y];
+                if (piece != null)
+                {
+                    state.Pieces[x, y] = new BoardState.PieceData
+                    {
+                        Type = piece.Type,
+                        IsWhite = piece.IsWhite,
+                        HasMoved = piece._hasMoved
+                    };
+                }
+            }
+        }
+        state.EnPassantTargetSquare = TurnManager.Instance.EnPassantTargetSquare;
+        return state;
+    }
+    
         public ChessPiece SimulateMove(ChessPiece piece, Vector2Int newPosition)
     {
         Vector2Int oldPosition = piece._boardPosition;
@@ -117,7 +141,7 @@ public class Chessboard : MonoBehaviour
 
         _pieces[newPosition.x, newPosition.y] = piece;
         _pieces[oldPosition.x, oldPosition.y] = null;
-        
+
         piece._boardPosition = newPosition;
 
         return capturedPiece;

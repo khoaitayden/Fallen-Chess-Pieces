@@ -6,32 +6,31 @@ using UnityEngine;
 public class HardAIStrategy : IAIStrategy
 {
     private const int SEARCH_DEPTH = 4;
+    private bool _aiIsWhite;
 
     public MoveData GetBestMove(bool isWhite, Chessboard board)
     {
         Debug.Log("Hard AI is thinking...");
-        return MinimaxRoot(isWhite, board);
+        this._aiIsWhite = isWhite;
+        BoardState initialBoardState = board.CreateBoardState();
+        return MinimaxRoot(initialBoardState);
     }
 
-    private MoveData MinimaxRoot(bool isWhite, Chessboard board)
+    private MoveData MinimaxRoot(BoardState boardState)
     {
         MoveData bestMove = default;
         int bestMoveScore = int.MinValue;
 
-        // Use the new helper method to get all moves.
-        List<MoveData> allPossibleMoves = GetAllPossibleMoves(isWhite, board);
+        List<MoveData> allPossibleMoves = GetAllPossibleMoves(_aiIsWhite, boardState);
 
-        // If there are no moves, the game is over (stalemate/checkmate).
         if (!allPossibleMoves.Any()) return default;
 
         foreach (var move in allPossibleMoves)
         {
-            ChessPiece pieceToMove = board.GetPieceAt(move.From);
-            ChessPiece capturedPiece = board.SimulateMove(pieceToMove, move.To);
-            
-            int moveScore = Minimax(SEARCH_DEPTH - 1, board, int.MinValue, int.MaxValue, false, !isWhite);
-            
-            board.UndoSimulatedMove(pieceToMove, move.From, capturedPiece);
+            BoardState newState = new BoardState(boardState);
+            SimulateMoveOnState(newState, move);
+
+            int moveScore = Minimax(SEARCH_DEPTH - 1, newState, int.MinValue, int.MaxValue, false, !_aiIsWhite);
 
             if (moveScore > bestMoveScore)
             {
@@ -43,15 +42,13 @@ public class HardAIStrategy : IAIStrategy
         return bestMove;
     }
 
-    private int Minimax(int depth, Chessboard board, int alpha, int beta, bool isMaximizingPlayer, bool playerColorIsWhite)
+    private int Minimax(int depth, BoardState boardState, int alpha, int beta, bool isMaximizingPlayer, bool playerColorIsWhite)
     {
-        // Get all moves for the current player in the simulation.
-        List<MoveData> allPossibleMoves = GetAllPossibleMoves(playerColorIsWhite, board);
+        List<MoveData> allPossibleMoves = GetAllPossibleMoves(playerColorIsWhite, boardState);
 
-        // Base Case: If depth is 0 OR there are no legal moves (checkmate/stalemate), evaluate the board.
         if (depth == 0 || !allPossibleMoves.Any())
         {
-            return EvaluateBoard(board, playerColorIsWhite);
+            return EvaluateBoard(boardState);
         }
 
         if (isMaximizingPlayer)
@@ -59,10 +56,9 @@ public class HardAIStrategy : IAIStrategy
             int maxEval = int.MinValue;
             foreach (var move in allPossibleMoves)
             {
-                ChessPiece pieceToMove = board.GetPieceAt(move.From);
-                ChessPiece capturedPiece = board.SimulateMove(pieceToMove, move.To);
-                int eval = Minimax(depth - 1, board, alpha, beta, false, !playerColorIsWhite);
-                board.UndoSimulatedMove(pieceToMove, move.From, capturedPiece);
+                BoardState newState = new BoardState(boardState);
+                SimulateMoveOnState(newState, move);
+                int eval = Minimax(depth - 1, newState, alpha, beta, false, !playerColorIsWhite);
                 maxEval = Mathf.Max(maxEval, eval);
                 alpha = Mathf.Max(alpha, eval);
                 if (beta <= alpha) break;
@@ -74,10 +70,9 @@ public class HardAIStrategy : IAIStrategy
             int minEval = int.MaxValue;
             foreach (var move in allPossibleMoves)
             {
-                ChessPiece pieceToMove = board.GetPieceAt(move.From);
-                ChessPiece capturedPiece = board.SimulateMove(pieceToMove, move.To);
-                int eval = Minimax(depth - 1, board, alpha, beta, true, !playerColorIsWhite);
-                board.UndoSimulatedMove(pieceToMove, move.From, capturedPiece);
+                BoardState newState = new BoardState(boardState);
+                SimulateMoveOnState(newState, move);
+                int eval = Minimax(depth - 1, newState, alpha, beta, true, !playerColorIsWhite);
                 minEval = Mathf.Min(minEval, eval);
                 beta = Mathf.Min(beta, eval);
                 if (beta <= alpha) break;
@@ -86,46 +81,67 @@ public class HardAIStrategy : IAIStrategy
         }
     }
 
-    // The static evaluation function.
-    private int EvaluateBoard(Chessboard board, bool playerColorIsWhite)
+    private int EvaluateBoard(BoardState boardState)
     {
         int totalScore = 0;
         for (int x = 0; x < Constants.BOARD_SIZE; x++)
         {
             for (int y = 0; y < Constants.BOARD_SIZE; y++)
             {
-                ChessPiece piece = board.GetPieceAt(new Vector2Int(x, y));
-                if (piece != null)
+                var pieceData = boardState.Pieces[x, y];
+                if (pieceData != null)
                 {
-                    int pieceValue = PieceValues.Values[piece.Type];
-                    totalScore += piece.IsWhite ? pieceValue : -pieceValue;
+                    int pieceValue = PieceValues.Values[pieceData.Value.Type];
+                    totalScore += pieceData.Value.IsWhite ? pieceValue : -pieceValue;
                 }
             }
         }
-        // The score is from White's perspective. If the current player is Black, we negate it.
-        return playerColorIsWhite ? totalScore : -totalScore;
+        return _aiIsWhite ? totalScore : -totalScore;
     }
 
-    // --- THIS IS THE MISSING PIECE OF LOGIC ---
-    private List<MoveData> GetAllPossibleMoves(bool isWhite, Chessboard board)
+    // --- HELPER METHODS THAT OPERATE ON BoardState ---
+
+    private List<MoveData> GetAllPossibleMoves(bool isWhite, BoardState boardState)
     {
         List<MoveData> allMoves = new List<MoveData>();
+
+        // Loop through every square on the board.
         for (int x = 0; x < Constants.BOARD_SIZE; x++)
         {
             for (int y = 0; y < Constants.BOARD_SIZE; y++)
             {
-                ChessPiece piece = board.GetPieceAt(new Vector2Int(x, y));
-                if (piece != null && piece.IsWhite == isWhite)
+                var pieceData = boardState.Pieces[x, y];
+
+                // Check if there is a piece on the square and if it's the correct color.
+                if (pieceData != null && pieceData.Value.IsWhite == isWhite)
                 {
-                    List<Vector2Int> validMoves = MoveValidator.Instance.GetValidMoves(piece);
+                    Vector2Int piecePosition = new Vector2Int(x, y);
+
+                    // Ask the MoveValidator for all valid moves for this piece in the current board state.
+                    List<Vector2Int> validMoves = MoveValidator.Instance.GetValidMoves(piecePosition, boardState);
+
+                    // For each valid move, create a MoveData object and add it to our list.
                     foreach (var move in validMoves)
                     {
-                        // We don't need perfect notation here, just the move data.
-                        allMoves.Add(new MoveData(piece.Type, piece._boardPosition, move, ""));
+                        // The notation can be empty here because the AI doesn't need it for its calculations.
+                        // We will generate the proper notation only for the final, chosen move.
+                        allMoves.Add(new MoveData(pieceData.Value.Type, piecePosition, move, ""));
                     }
                 }
             }
         }
         return allMoves;
+    }
+
+    private void SimulateMoveOnState(BoardState state, MoveData move)
+    {
+        var pieceData = state.Pieces[move.From.x, move.From.y];
+        if (pieceData.HasValue)
+        {
+            var movedPiece = pieceData.Value;
+            movedPiece.HasMoved = true;
+            state.Pieces[move.To.x, move.To.y] = movedPiece;
+            state.Pieces[move.From.x, move.From.y] = null;
+        }
     }
 }

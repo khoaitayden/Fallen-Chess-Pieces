@@ -1,13 +1,13 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
+
 public abstract class ChessPiece : MonoBehaviour, IClickable
 {
     [SerializeField] private PieceType _pieceType;
     [SerializeField] private bool _isWhite;
 
     public PieceType Type => _pieceType;
-
 
     [HideInInspector] public Vector2Int _boardPosition;
     public bool _hasMoved = false;
@@ -20,6 +20,7 @@ public abstract class ChessPiece : MonoBehaviour, IClickable
         _hasMoved = false;
         //Can set colour of each piece here
     }
+
     private void LateUpdate()
     {
         transform.rotation = Quaternion.identity;
@@ -29,8 +30,26 @@ public abstract class ChessPiece : MonoBehaviour, IClickable
     {
         Debug.Log($"{_pieceType} at {_boardPosition} selected.");
     }
-    public abstract List<Vector2Int> GetPossibleMoves(Chessboard board);
-    public abstract List<Vector2Int> GetAttackMoves(Chessboard board);
+
+    // --- EXISTING METHOD (for live game) ---
+    public List<Vector2Int> GetPossibleMoves()
+    {
+        // This now calls the new core method, passing the live board state.
+        return GetPossibleMoves(Chessboard.Instance.CreateBoardState());
+    }
+
+    // --- NEW ABSTRACT METHOD (for simulation) ---
+    // All child classes MUST implement this version.
+    public abstract List<Vector2Int> GetPossibleMoves(BoardState boardState);
+
+    // Do the same for attack moves.
+    public List<Vector2Int> GetAttackMoves()
+    {
+        return GetAttackMoves(Chessboard.Instance.CreateBoardState());
+    }
+    
+    public abstract List<Vector2Int> GetAttackMoves(BoardState boardState);
+
     public void DeselectPiece()
     {
     }
@@ -39,8 +58,6 @@ public abstract class ChessPiece : MonoBehaviour, IClickable
     {
         return _boardPosition;
     }
-
-    
 
     public void MoveTo(Vector2Int newPosition, Vector3 targetLocalPosition)
     {

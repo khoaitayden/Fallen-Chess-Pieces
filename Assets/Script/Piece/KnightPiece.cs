@@ -3,12 +3,18 @@ using UnityEngine;
 
 public class KnightPiece : ChessPiece, IClickable
 {
-    public override List<Vector2Int> GetAttackMoves(Chessboard board)
+    // This helper function replaces the need for IsValidSquare()
+    private bool IsOnBoard(Vector2Int pos)
     {
-        return GetPossibleMoves(board);
+        return pos.x >= 0 && pos.x < Constants.BOARD_SIZE && pos.y >= 0 && pos.y < Constants.BOARD_SIZE;
     }
 
-    public override List<Vector2Int> GetPossibleMoves(Chessboard board)
+    public override List<Vector2Int> GetAttackMoves(BoardState boardState)
+    {
+        return GetPossibleMoves(boardState);
+    }
+
+    public override List<Vector2Int> GetPossibleMoves(BoardState boardState)
     {
         var moves = new List<Vector2Int>();
 
@@ -24,14 +30,15 @@ public class KnightPiece : ChessPiece, IClickable
         {
             Vector2Int nextPos = _boardPosition + offset;
 
-            if (board.GetSquareAt(nextPos) == null)
+            if (!IsOnBoard(nextPos))
             {
                 continue;
             }
 
-            ChessPiece pieceAtNextPos = board.GetPieceAt(nextPos);
+            // Get the piece data directly from the array.
+            var pieceAtTarget = boardState.Pieces[nextPos.x, nextPos.y];
 
-            if (pieceAtNextPos == null || pieceAtNextPos.IsWhite != this.IsWhite)
+            if (pieceAtTarget == null || pieceAtTarget.Value.IsWhite != this.IsWhite)
             {
                 moves.Add(nextPos);
             }

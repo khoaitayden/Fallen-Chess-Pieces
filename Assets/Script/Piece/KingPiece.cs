@@ -3,7 +3,13 @@ using UnityEngine;
 
 public class KingPiece : ChessPiece, IClickable
 {
-    public override List<Vector2Int> GetAttackMoves(Chessboard board)
+    // This helper function replaces the need for IsValidSquare()
+    private bool IsOnBoard(Vector2Int pos)
+    {
+        return pos.x >= 0 && pos.x < Constants.BOARD_SIZE && pos.y >= 0 && pos.y < Constants.BOARD_SIZE;
+    }
+
+    public override List<Vector2Int> GetAttackMoves(BoardState boardState)
     {
         var moves = new List<Vector2Int>();
         Vector2Int currentPos = _boardPosition;
@@ -16,7 +22,7 @@ public class KingPiece : ChessPiece, IClickable
 
                 Vector2Int nextPos = new Vector2Int(currentPos.x + x, currentPos.y + y);
 
-                if (board.GetSquareAt(nextPos) == null)
+                if (!IsOnBoard(nextPos))
                     continue;
 
                 moves.Add(nextPos);
@@ -26,7 +32,7 @@ public class KingPiece : ChessPiece, IClickable
         return moves;
     }
 
-    public override List<Vector2Int> GetPossibleMoves(Chessboard board)
+    public override List<Vector2Int> GetPossibleMoves(BoardState boardState)
     {
         var moves = new List<Vector2Int>();
         Vector2Int currentPos = _boardPosition;
@@ -39,18 +45,21 @@ public class KingPiece : ChessPiece, IClickable
 
                 Vector2Int nextPos = new Vector2Int(currentPos.x + x, currentPos.y + y);
 
-                if (board.GetSquareAt(nextPos) == null)
+                if (!IsOnBoard(nextPos))
                     continue;
 
-                ChessPiece piece = board.GetPieceAt(nextPos);
+                // Get the piece data directly from the array.
+                var pieceAtTarget = boardState.Pieces[nextPos.x, nextPos.y];
 
-                if (piece == null || piece.IsWhite != this.IsWhite)
+                if (pieceAtTarget == null || pieceAtTarget.Value.IsWhite != this.IsWhite)
                 {
                     moves.Add(nextPos);
                 }
             }
         }
 
+        // Note: Castling logic might need to be adjusted for BoardState
+        // You may need to pass additional information to BoardState or handle this differently
         if (!_hasMoved)
         {
             if (MoveValidator.Instance.CanCastleKingside(this))

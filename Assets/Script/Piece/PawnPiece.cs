@@ -1,86 +1,90 @@
+// In PawnPiece.cs
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PawnPiece : ChessPiece, IClickable
+public class PawnPiece : ChessPiece
 {
-    public override List<Vector2Int> GetAttackMoves(Chessboard board)
+    private bool IsOnBoard(Vector2Int pos)
+    {
+        return pos.x >= 0 && pos.x < Constants.BOARD_SIZE && pos.y >= 0 && pos.y < Constants.BOARD_SIZE;
+    }
+
+    public override List<Vector2Int> GetAttackMoves(BoardState boardState)
     {
         var moves = new List<Vector2Int>();
         int direction = IsWhite ? 1 : -1;
 
-        Vector2Int captureRight = new Vector2Int(_boardPosition.x + 1, _boardPosition.y + direction);
-        if (board.GetSquareAt(captureRight) != null)
+        Vector2Int[] attackPositions = 
         {
-            moves.Add(captureRight);
-        }
+            new Vector2Int(_boardPosition.x + 1, _boardPosition.y + direction),
+            new Vector2Int(_boardPosition.x - 1, _boardPosition.y + direction)
+        };
 
-        Vector2Int captureLeft = new Vector2Int(_boardPosition.x - 1, _boardPosition.y + direction);
-        if (board.GetSquareAt(captureLeft) != null)
+        foreach (var pos in attackPositions)
         {
-            moves.Add(captureLeft);
+            if (IsOnBoard(pos))
+            {
+                moves.Add(pos);
+            }
         }
-
         return moves;
     }
 
-    public override List<Vector2Int> GetPossibleMoves(Chessboard board)
+    public override List<Vector2Int> GetPossibleMoves(BoardState boardState)
     {
         var moves = new List<Vector2Int>();
         int direction = IsWhite ? 1 : -1;
 
-        //Forward Move
-        Vector2Int forwardMove = new Vector2Int(_boardPosition.x, _boardPosition.y + direction);
-        if (board.GetSquareAt(forwardMove) != null && board.GetPieceAt(forwardMove) == null)
+        // --- 1. Forward Move ---
+        Vector2Int oneForward = new Vector2Int(_boardPosition.x, _boardPosition.y + direction);
+        // Check if the square is on the board AND if it's empty.
+        if (IsOnBoard(oneForward) && boardState.Pieces[oneForward.x, oneForward.y] == null)
         {
-            moves.Add(forwardMove);
+            moves.Add(oneForward);
 
-            //Double Forward Move
+            // --- 2. Double Forward Move (only on first move) ---
             if (!_hasMoved)
             {
-                Vector2Int doubleForwardMove = new Vector2Int(_boardPosition.x, _boardPosition.y + 2 * direction);
-                if (board.GetSquareAt(doubleForwardMove) != null && board.GetPieceAt(doubleForwardMove) == null)
+                Vector2Int twoForward = new Vector2Int(_boardPosition.x, _boardPosition.y + 2 * direction);
+                // Check if this square is also on the board and empty.
+                if (IsOnBoard(twoForward) && boardState.Pieces[twoForward.x, twoForward.y] == null)
                 {
-                    moves.Add(doubleForwardMove);
+                    moves.Add(twoForward);
                 }
             }
         }
 
-        //Diagonal Capture Right
-        Vector2Int captureRight = new Vector2Int(_boardPosition.x + 1, _boardPosition.y + direction);
-        if (board.GetSquareAt(captureRight) != null)
+        // --- 3. Diagonal Captures ---
+        Vector2Int[] capturePositions = 
         {
-            ChessPiece pieceRight = board.GetPieceAt(captureRight);
-            if (pieceRight != null && pieceRight.IsWhite != this.IsWhite)
+            new Vector2Int(_boardPosition.x + 1, _boardPosition.y + direction),
+            new Vector2Int(_boardPosition.x - 1, _boardPosition.y + direction)
+        };
+
+        foreach (var pos in capturePositions)
+        {
+            if (IsOnBoard(pos))
             {
-                moves.Add(captureRight);
+                // Get the piece data directly from the array.
+                var pieceAtTarget = boardState.Pieces[pos.x, pos.y];
+                // Check if there is a piece AND if it's an enemy piece.
+                if (pieceAtTarget != null && pieceAtTarget.Value.IsWhite != this.IsWhite)
+                {
+                    moves.Add(pos);
+                }
             }
         }
 
-        //Diagonal Capture Left
-        Vector2Int captureLeft = new Vector2Int(_boardPosition.x - 1, _boardPosition.y + direction);
-        if (board.GetSquareAt(captureLeft) != null)
-        {
-            ChessPiece pieceLeft = board.GetPieceAt(captureLeft);
-            if (pieceLeft != null && pieceLeft.IsWhite != this.IsWhite)
-            {
-                moves.Add(captureLeft);
-            }
-        }
-
-        //En Passant
-        Vector2Int enPassantTarget = TurnManager.Instance.EnPassantTargetSquare;
+        // --- 4. En Passant ---
+        // The BoardState now correctly holds the en passant target square.
+        Vector2Int enPassantTarget = boardState.EnPassantTargetSquare;
         if (enPassantTarget != new Vector2Int(-1, -1))
         {
-            if ((_boardPosition.y == 4 && IsWhite) || (_boardPosition.y == 3 && !IsWhite))
+            // Check if the en passant target is one of the diagonal attack squares.
+            if (enPassantTarget.y == _boardPosition.y + direction && 
+               (enPassantTarget.x == _boardPosition.x + 1 || enPassantTarget.x == _boardPosition.x - 1))
             {
-                if ((enPassantTarget.x == _boardPosition.x + 1 && enPassantTarget.y == _boardPosition.y + direction) ||
-                    (enPassantTarget.x == _boardPosition.x - 1 && enPassantTarget.y == _boardPosition.y + direction))
-                {
-                    if (board.GetSquareAt(enPassantTarget) != null)
-                    {
-                        moves.Add(enPassantTarget);
-                    }
-                }
+                moves.Add(enPassantTarget);
             }
         }
 
