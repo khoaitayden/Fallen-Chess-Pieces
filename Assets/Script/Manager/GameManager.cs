@@ -33,25 +33,37 @@ public class GameManager : MonoBehaviour
         // It waits for a button press from the MenuUI.
     }
 
-    public void StartNewGame(GameMode mode)
+    public void StartNewGame(GameMode mode, AIDifficulty difficulty = AIDifficulty.Easy)
     {
         CurrentGameMode = mode;
 
-        // --- CREATE PLAYERS BASED ON MODE ---
         switch (CurrentGameMode)
         {
             case GameMode.Local:
                 whitePlayer = new HumanPlayer(true);
                 blackPlayer = new HumanPlayer(false);
-                BoardPresenter.Instance.OrientBoardToPlayer(true); 
                 break;
+
             case GameMode.AI:
+                IAIStrategy strategy;
+                switch (difficulty)
+                {
+                    case AIDifficulty.Normal:
+                        strategy = new NormalAIStrategy();
+                        break;
+                    case AIDifficulty.Hard:
+                        strategy = new HardAIStrategy();
+                        break;
+                    case AIDifficulty.Easy:
+                    default:
+                        strategy = new EasyAIStrategy();
+                        break;
+                }
                 whitePlayer = new HumanPlayer(true);
-                blackPlayer = new AIPlayer(false); // Example: Player is White, AI is Black
+                blackPlayer = new AIPlayer(false, strategy);
                 break;
+
             case GameMode.Online:
-                // This would be handled by your networking logic later
-                // For now, default to local players
                 whitePlayer = new HumanPlayer(true);
                 blackPlayer = new HumanPlayer(false);
                 break;
@@ -59,24 +71,23 @@ public class GameManager : MonoBehaviour
         // ------------------------------------ 
 
         // --- RESET UI AND GAME STATE ---
-        // Clear history and captured pieces from the last game.
         MoveHistory.Instance.ClearHistory();
-        GameplayUI.Instance.ClearLastMoveDisplay();
+        if (GameplayUI.Instance != null)
+        {
+            GameplayUI.Instance.ClearLastMoveDisplay();
+            GameplayUI.Instance.ClearCapturedPieceUI();
+        }
         PieceCaptureManager.Instance.ClearCapturedLists();
-        GameplayUI.Instance.ClearCapturedPieceUI();
-
-        // Reset the board visuals and piece positions
+        
         Chessboard.Instance.GenerateBoard();
         ChessPieceManager.Instance.SpawnAllPieces();
-
-        // Reset the timers
         TurnManager.Instance.StartNewGame();
 
         // Tell the UIManager to switch to the gameplay view.
         UIManager.Instance.ShowGameplayPanel();
-
         ChangeState(GameState.Playing);
-        Debug.Log($"New game started in {CurrentGameMode} mode. It's White's turn.");
+        
+        Debug.Log($"New game started in {CurrentGameMode} mode (Difficulty: {difficulty}). It's White's turn.");
         
         BoardPresenter.Instance.OrientBoardToPlayer(true);
         NotifyCurrentPlayer();

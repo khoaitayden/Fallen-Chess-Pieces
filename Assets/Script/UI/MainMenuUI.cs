@@ -1,4 +1,3 @@
-// Create new script: MenuUI.cs
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,7 +11,6 @@ public class MainMenuUI : MonoBehaviour
 
     private void Awake()
     {
-        // Add listeners to each button to call the appropriate method when clicked.
         playerVsPlayerButton.onClick.AddListener(OnPlayerVsPlayerClicked);
         playerVsAIButton.onClick.AddListener(OnPlayerVsAIClicked);
         onlineButton.onClick.AddListener(OnOnlineClicked);
@@ -27,8 +25,8 @@ public class MainMenuUI : MonoBehaviour
 
     private void OnPlayerVsAIClicked()
     {
-        // Tell the GameManager to start a new game in AI mode.
-        GameManager.Instance.StartNewGame(GameMode.AI);
+        // Instead of starting the game directly, show the difficulty selection panel.
+        UIManager.Instance.ShowAIDifficultyPanel();
     }
 
     private void OnOnlineClicked()

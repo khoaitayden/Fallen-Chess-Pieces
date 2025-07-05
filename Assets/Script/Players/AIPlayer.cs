@@ -1,71 +1,61 @@
+// In AIPlayer.cs
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq; // Required for .ToList() and .Count()
 using UnityEngine;
+using System.Threading.Tasks; // Required for running on a separate thread
 
 public class AIPlayer : Player
 {
     private Chessboard _chessboard;
+    private IAIStrategy _strategy;
 
-    public AIPlayer(bool isWhite) : base(isWhite, PlayerType.AI) 
+    public AIPlayer(bool isWhite, IAIStrategy strategy) : base(isWhite, PlayerType.AI) 
     {
         _chessboard = Object.FindObjectOfType<Chessboard>();
+        _strategy = strategy;
     }
 
     public override void OnTurnStart()
     {
-        Chessboard.Instance.StartCoroutine(DelayedMove());
+        // We no longer use a coroutine. We start the threaded task directly.
+        ThinkAndMakeMove();
     }
 
-    private IEnumerator DelayedMove()
+    private async void ThinkAndMakeMove()
     {
-        yield return new WaitForSeconds(0.5f); // A short delay
+        Debug.Log("AI Player's turn. Starting background task to think...");
 
-        // --- AI LOGIC: LEVEL 1 (RANDOM MOVER) ---
+        // --- RUN ON A BACKGROUND THREAD ---
+        // Task.Run() executes the provided code on a thread pool thread.
+        // The 'await' keyword pauses this method without freezing the game,
+        // waiting for the background task to complete.
+        MoveData bestMove = await Task.Run(() => _strategy.GetBestMove(this.IsWhite, _chessboard));
+        // ---------------------------------
 
-        // 1. Find all of my pieces that can actually move.
-        List<ChessPiece> myMovablePieces = new List<ChessPiece>();
-        for (int x = 0; x < Constants.BOARD_SIZE; x++)
+        Debug.Log("AI has finished thinking. Executing move on main thread.");
+
+        // --- EXECUTE ON THE MAIN THREAD ---
+        // All Unity API calls (like moving GameObjects) MUST happen on the main thread.
+        // By this point, the 'await' is finished, and we are back on the main thread.
+
+        if (bestMove.Equals(default(MoveData)))
         {
-            for (int y = 0; y < Constants.BOARD_SIZE; y++)
-            {
-                ChessPiece piece = _chessboard.GetPieceAt(new Vector2Int(x, y));
-                if (piece != null && piece.IsWhite == this.IsWhite)
-                {
-                    if (MoveValidator.Instance.GetValidMoves(piece).Count > 0)
-                    {
-                        myMovablePieces.Add(piece);
-                    }
-                }
-            }
+            Debug.LogWarning("AI strategy could not find a valid move.");
+            // Potentially force a game end here if this happens (e.g., stalemate)
+            return;
         }
 
-        // If there are no movable pieces, the game should have already ended (stalemate/checkmate).
-        if (myMovablePieces.Count == 0)
-        {
-            Debug.LogWarning("AI has no valid moves, but the game hasn't ended.");
-            yield break;
-        }
-
-        // 2. Pick a random piece from the list of movable pieces.
-        ChessPiece randomPiece = myMovablePieces[Random.Range(0, myMovablePieces.Count)];
-        
-        // 3. Get its valid moves and pick a random one.
-        List<Vector2Int> validMoves = MoveValidator.Instance.GetValidMoves(randomPiece);
-        Vector2Int randomMove = validMoves[Random.Range(0, validMoves.Count)];
-
-        // 4. Execute the move (this is the same logic as HumanPlayer's HandleAction).
-        Debug.Log($"AI moves {randomPiece.Type} to {randomMove}");
-        
-        Vector2Int oldPosition = randomPiece._boardPosition;
-        _chessboard.MovePiece(randomPiece, randomMove);
-        TurnManager.Instance.SetEnPassantTarget(randomPiece, oldPosition, randomMove);
+        ChessPiece pieceToMove = _chessboard.GetPieceAt(bestMove.From);
+        _chessboard.MovePiece(pieceToMove, bestMove.To);
+        TurnManager.Instance.SetEnPassantTarget(pieceToMove, bestMove.From, bestMove.To);
         TurnManager.Instance.SwitchTurn();
 
-        // Record history, check for game end, and notify the next player.
-        string notation = MoveConverter.ToDescriptiveNotation(randomPiece, randomMove);
-        MoveData move = new MoveData(randomPiece.Type, oldPosition, randomMove, notation);
-        MoveHistory.Instance.AddMove(move);
+        // We need to re-generate the notation here as it was empty in the AI's MoveData
+        bool isCheck = MoveValidator.Instance.IsInCheck(TurnManager.Instance.IsWhiteTurn);
+        bool isCheckmate = MoveValidator.Instance.IsCheckmate(TurnManager.Instance.IsWhiteTurn);
+        string notation = MoveConverter.ToDescriptiveNotation(pieceToMove, bestMove.To);
+        MoveData finalMove = new MoveData(bestMove.Piece, bestMove.From, bestMove.To, notation);
+        
+        MoveHistory.Instance.AddMove(finalMove);
         GameManager.Instance.CheckForGameEnd();
 
         if (GameManager.Instance.CurrentState == GameState.Playing)

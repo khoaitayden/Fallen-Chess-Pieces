@@ -110,6 +110,28 @@ public class Chessboard : MonoBehaviour
 
         StandardMove(piece, newPosition);
     }
+        public ChessPiece SimulateMove(ChessPiece piece, Vector2Int newPosition)
+    {
+        Vector2Int oldPosition = piece._boardPosition;
+        ChessPiece capturedPiece = GetPieceAt(newPosition);
+
+        _pieces[newPosition.x, newPosition.y] = piece;
+        _pieces[oldPosition.x, oldPosition.y] = null;
+        
+        piece._boardPosition = newPosition;
+
+        return capturedPiece;
+    }
+
+    public void UndoSimulatedMove(ChessPiece piece, Vector2Int originalPosition, ChessPiece capturedPiece)
+    {
+        Vector2Int currentPosition = piece._boardPosition;
+
+        _pieces[originalPosition.x, originalPosition.y] = piece;
+        _pieces[currentPosition.x, currentPosition.y] = capturedPiece; 
+
+        piece._boardPosition = originalPosition;
+    }
 
     private void StandardMove(ChessPiece piece, Vector2Int newPosition)
     {
@@ -194,28 +216,5 @@ public class Chessboard : MonoBehaviour
         {
             Debug.LogError($"Castling failed: Rook not found at {rookOldPos}");
         }
-    }
-
-    public ChessPiece SimulateMove(ChessPiece piece, Vector2Int newPosition)
-    {
-        Vector2Int oldPosition = piece._boardPosition;
-        ChessPiece capturedPiece = GetPieceAt(newPosition);
-
-        _pieces[newPosition.x, newPosition.y] = piece;
-        _pieces[oldPosition.x, oldPosition.y] = null;
-        
-        piece._boardPosition = newPosition;
-
-        return capturedPiece;
-    }
-
-    public void UndoSimulatedMove(ChessPiece piece, Vector2Int originalPosition, ChessPiece capturedPiece)
-    {
-        Vector2Int currentPosition = piece._boardPosition;
-
-        _pieces[originalPosition.x, originalPosition.y] = piece;
-        _pieces[currentPosition.x, currentPosition.y] = capturedPiece; 
-
-        piece._boardPosition = originalPosition;
     }
 }

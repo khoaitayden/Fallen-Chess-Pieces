@@ -5,7 +5,8 @@ public class UIManager : MonoBehaviour
     public static UIManager Instance { get; private set; }
 
     [Header("UI Controllers")]
-    [SerializeField] private MainMenuUI mainMenuUI;
+    [SerializeField] private MainMenuUI menuUI;
+    [SerializeField] private ChooseAIDifficultyUI chooseAIDifficultyUI; // Add reference to the new UI
     [SerializeField] private GameplayUI gameplayUI;
     [SerializeField] private GameOverUI gameOverUI;
     [SerializeField] private PromotionUI promotionUI;
@@ -52,13 +53,22 @@ public class UIManager : MonoBehaviour
     // --- PANEL MANAGEMENT METHODS ---
     public void ShowMenuPanel()
     {
-        mainMenuUI.Show();
+        menuUI.Show();
+        chooseAIDifficultyUI.Hide(); // Make sure other panels are hidden
         gameplayUI.gameObject.SetActive(false); // Hide the gameplay UI
+    }
+
+    public void ShowAIDifficultyPanel()
+    {
+        menuUI.Hide();
+        chooseAIDifficultyUI.Show(); // Show the difficulty panel
+        gameplayUI.gameObject.SetActive(false);
     }
 
     public void ShowGameplayPanel()
     {
-        mainMenuUI.Hide();
+        menuUI.Hide();
+        chooseAIDifficultyUI.Hide();
         gameplayUI.gameObject.SetActive(true); // Show the gameplay UI
         // Also call the ShowPanel method if it exists
         gameplayUI.ShowPanel();
@@ -77,5 +87,10 @@ public class UIManager : MonoBehaviour
     public void HidePromotionPanel()
     {
         promotionUI.HidePanel();
+    }
+
+    public void HideAIDifficultyPanel()
+    {
+        chooseAIDifficultyUI.Hide();
     }
 }
