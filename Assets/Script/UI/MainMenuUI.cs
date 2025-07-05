@@ -19,21 +19,17 @@ public class MainMenuUI : MonoBehaviour
 
     private void OnPlayerVsPlayerClicked()
     {
-        // Tell the GameManager to start a new game in Local mode.
         GameManager.Instance.StartNewGame(GameMode.Local);
     }
 
     private void OnPlayerVsAIClicked()
     {
-        // Instead of starting the game directly, show the difficulty selection panel.
         UIManager.Instance.ShowAIDifficultyPanel();
     }
 
     private void OnOnlineClicked()
     {
-        // This is the placeholder. For now, it can just show a message.
         Debug.Log("Online mode is not yet implemented.");
-        // You could also disable this button or show a "Coming Soon" popup.
     }
 
     private void OnQuitClicked()

@@ -14,7 +14,6 @@ public class Chessboard : MonoBehaviour
 
     void Awake()
     {
-        // --- ADD THIS SINGLETON LOGIC ---
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -23,16 +22,14 @@ public class Chessboard : MonoBehaviour
         {
             Instance = this;
         }
-        // --------------------------------
 
         GenerateBoard();
     }
 
     public void GenerateBoard()
     {
-        // Clear any existing pieces or squares before generating a new board
         foreach (Transform child in transform) { Destroy(child.gameObject); }
-        _pieces = new ChessPiece[Constants.BOARD_SIZE, Constants.BOARD_SIZE]; // Also clear the logical array
+        _pieces = new ChessPiece[Constants.BOARD_SIZE, Constants.BOARD_SIZE];
 
         for (int row = 0; row < Constants.BOARD_SIZE; row++)
         {
@@ -55,18 +52,12 @@ public class Chessboard : MonoBehaviour
 
     public Vector3 GetWorldPosition(Vector2Int boardPos)
     {
-        // This calculates the true world position by transforming the local position.
         return transform.TransformPoint(GetLocalPosition(boardPos));
     }
         public Vector3 GetLocalPosition(Vector2Int boardPos)
     {
-        // We no longer add the board's world position or the offset here.
-        // We are just calculating the position relative to the Board's own pivot (0,0).
         return new Vector3(boardPos.x * squareSize, boardPos.y * squareSize, -1f);
     }
-
-    // We need to keep GetWorldPosition for things that need the true world coordinate,
-    // like the AIPlayer or a future networking system.
 
 
     public ChessPiece GetPieceAt(Vector2Int position)
@@ -134,27 +125,16 @@ public class Chessboard : MonoBehaviour
         return state;
     }
     
-        public ChessPiece SimulateMove(ChessPiece piece, Vector2Int newPosition)
+    public ChessPiece SimulateMove(ChessPiece piece, Vector2Int newPosition)
     {
-        Vector2Int oldPosition = piece._boardPosition;
-        ChessPiece capturedPiece = GetPieceAt(newPosition);
-
-        _pieces[newPosition.x, newPosition.y] = piece;
-        _pieces[oldPosition.x, oldPosition.y] = null;
-
-        piece._boardPosition = newPosition;
-
-        return capturedPiece;
+        // If ANYONE calls this method, we will know immediately.
+        Debug.LogError("FATAL ERROR: The old Chessboard.SimulateMove is still being called! Find the culprit!");
+        return null;
     }
 
     public void UndoSimulatedMove(ChessPiece piece, Vector2Int originalPosition, ChessPiece capturedPiece)
     {
-        Vector2Int currentPosition = piece._boardPosition;
-
-        _pieces[originalPosition.x, originalPosition.y] = piece;
-        _pieces[currentPosition.x, currentPosition.y] = capturedPiece; 
-
-        piece._boardPosition = originalPosition;
+        Debug.LogError("FATAL ERROR: The old Chessboard.UndoSimulatedMove is still being called! Find the culprit!");
     }
 
     private void StandardMove(ChessPiece piece, Vector2Int newPosition)

@@ -7,10 +7,8 @@ public class GameManager : MonoBehaviour
     public GameMode CurrentGameMode { get; private set; }
     public GameState CurrentState { get; private set; }
 
-    // --- PLAYER MANAGEMENT ---
     private Player whitePlayer;
     private Player blackPlayer;
-    // -------------------------
 
     public event System.Action<GameState> OnGameStateChanged;
     private ChessPiece _pawnToPromote;
@@ -26,13 +24,6 @@ public class GameManager : MonoBehaviour
             Instance = this;
         }
     }
-
-    private void Start()
-    {
-        // The GameManager no longer starts a game by default.
-        // It waits for a button press from the MenuUI.
-    }
-
     public void StartNewGame(GameMode mode, AIDifficulty difficulty = AIDifficulty.Easy)
     {
         CurrentGameMode = mode;
@@ -68,9 +59,6 @@ public class GameManager : MonoBehaviour
                 blackPlayer = new HumanPlayer(false);
                 break;
         }
-        // ------------------------------------ 
-
-        // --- RESET UI AND GAME STATE ---
         MoveHistory.Instance.ClearHistory();
         if (GameplayUI.Instance != null)
         {
@@ -83,7 +71,6 @@ public class GameManager : MonoBehaviour
         ChessPieceManager.Instance.SpawnAllPieces();
         TurnManager.Instance.StartNewGame();
 
-        // Tell the UIManager to switch to the gameplay view.
         UIManager.Instance.ShowGameplayPanel();
         ChangeState(GameState.Playing);
         
@@ -93,7 +80,6 @@ public class GameManager : MonoBehaviour
         NotifyCurrentPlayer();
     }
 
-    // This method is called after every turn switch
     public void NotifyCurrentPlayer()
     {
         if (CurrentState != GameState.Playing) return;
@@ -161,7 +147,6 @@ public class GameManager : MonoBehaviour
         OnGameStateChanged?.Invoke(newState);
     }
 
-    // --- HELPER METHODS FOR PLAYER ACCESS ---
     public Player GetCurrentPlayer()
     {
         return TurnManager.Instance.IsWhiteTurn ? whitePlayer : blackPlayer;
@@ -176,5 +161,4 @@ public class GameManager : MonoBehaviour
     {
         return blackPlayer;
     }
-    // ----------------------------------------
 }

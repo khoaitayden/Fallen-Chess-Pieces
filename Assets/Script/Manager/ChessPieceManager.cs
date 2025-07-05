@@ -42,7 +42,6 @@ public class ChessPieceManager : MonoBehaviour
 
     public void SpawnAllPieces()
     {
-        // Spawn White Pieces
         SpawnPiece(whiteRookPrefab,   new Vector2Int(0, 0), true);
         SpawnPiece(whiteKnightPrefab, new Vector2Int(1, 0), true);
         SpawnPiece(whiteBishopPrefab, new Vector2Int(2, 0), true);
@@ -78,14 +77,11 @@ public class ChessPieceManager : MonoBehaviour
             Vector2Int position = pawn._boardPosition;
             bool isWhite = pawn.IsWhite;
 
-            // 1. Remove the pawn from the board
             chessboard.SetPiece(null, position);
             Destroy(pawn.gameObject);
 
-            // 2. Get the correct prefab for the new piece
             GameObject newPiecePrefab = GetPrefabForPiece(newType, isWhite);
 
-            // 3. Spawn the new piece
             if (newPiecePrefab != null)
             {
                 SpawnPiece(newPiecePrefab, position, isWhite);

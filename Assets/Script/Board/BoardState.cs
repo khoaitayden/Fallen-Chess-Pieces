@@ -1,4 +1,3 @@
-// In BoardState.cs
 using UnityEngine;
 
 public class BoardState

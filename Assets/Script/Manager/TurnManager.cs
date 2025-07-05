@@ -57,13 +57,11 @@ public class TurnManager : MonoBehaviour
     {
         if (piece.Type == PieceType.Pawn && Mathf.Abs(to.y - from.y) == 2)
         {
-            // Pawn moved two squares, set the en passant target to the square behind it
             int direction = (piece.IsWhite) ? -1 : 1;
             EnPassantTargetSquare = new Vector2Int(to.x, to.y + direction);
         }
         else
         {
-            // Any other move resets the en passant opportunity
             EnPassantTargetSquare = new Vector2Int(-1, -1);
         }
     }

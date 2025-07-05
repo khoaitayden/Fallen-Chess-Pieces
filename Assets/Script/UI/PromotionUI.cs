@@ -1,4 +1,3 @@
-// Create new script: PromotionUI.cs
 using UnityEngine;
 using UnityEngine.UI;
 

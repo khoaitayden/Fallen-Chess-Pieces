@@ -1,40 +1,44 @@
-// Create new script: EasyAIStrategy.cs
+// In EasyAIStrategy.cs
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-
 public class EasyAIStrategy : IAIStrategy
 {
+    private static readonly System.Random _random = new System.Random();
+
     public MoveData GetBestMove(bool isWhite, Chessboard board)
     {
-        List<ChessPiece> movablePieces = new List<ChessPiece>();
+        BoardState boardState = board.CreateBoardState();
+        List<MoveData> allPossibleMoves = GetAllPossibleMoves(isWhite, boardState);
+
+        if (!allPossibleMoves.Any())
+        {
+            return default;
+        }
+
+        int randomIndex = _random.Next(0, allPossibleMoves.Count);
+        return allPossibleMoves[randomIndex];
+    }
+
+    private List<MoveData> GetAllPossibleMoves(bool isWhite, BoardState boardState)
+    {
+        List<MoveData> allMoves = new List<MoveData>();
         for (int x = 0; x < Constants.BOARD_SIZE; x++)
         {
             for (int y = 0; y < Constants.BOARD_SIZE; y++)
             {
-                ChessPiece piece = board.GetPieceAt(new Vector2Int(x, y));
-                if (piece != null && piece.IsWhite == isWhite)
+                var pieceData = boardState.Pieces[x, y];
+                if (pieceData != null && pieceData.Value.IsWhite == isWhite)
                 {
-                    if (MoveValidator.Instance.GetValidMoves(piece).Any())
+                    Vector2Int piecePosition = new Vector2Int(x, y);
+                    List<Vector2Int> validMoves = MoveValidator.Instance.GetValidMoves(piecePosition, boardState);
+                    foreach (var move in validMoves)
                     {
-                        movablePieces.Add(piece);
+                        allMoves.Add(new MoveData(pieceData.Value.Type, piecePosition, move, ""));
                     }
                 }
             }
         }
-
-        if (!movablePieces.Any())
-        {
-
-            return default;
-        }
-
-        ChessPiece randomPiece = movablePieces[Random.Range(0, movablePieces.Count)];
-        
-        List<Vector2Int> validMoves = MoveValidator.Instance.GetValidMoves(randomPiece);
-        Vector2Int randomMoveTo = validMoves[Random.Range(0, validMoves.Count)];
-
-        string notation = MoveConverter.ToDescriptiveNotation(randomPiece, randomMoveTo);
-        return new MoveData(randomPiece.Type, randomPiece._boardPosition, randomMoveTo, notation);
+        return allMoves;
     }
 }

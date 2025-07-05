@@ -14,7 +14,6 @@ public class GameInput : MonoBehaviour
     private void OnEnable()
     {
         _chessControls.Enable();
-        // Subscribe our new method to the "performed" event of the Menu action
         _chessControls.Player.Menu.performed += HandleMenuToggle;
     }
 
@@ -30,10 +29,6 @@ public class GameInput : MonoBehaviour
         if (settingsPanel != null)
         {
             settingsPanel.ToggleVisibility();
-        }
-        else
-        {
-            Debug.LogWarning("No SettingsUI panel found in the scene to toggle.");
         }
     }
 }

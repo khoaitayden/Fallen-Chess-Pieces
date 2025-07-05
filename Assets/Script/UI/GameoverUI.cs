@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using UnityEngine.SceneManagement; // Required for reloading the scene
+using UnityEngine.SceneManagement;
 
 public class GameOverUI : MonoBehaviour
 {

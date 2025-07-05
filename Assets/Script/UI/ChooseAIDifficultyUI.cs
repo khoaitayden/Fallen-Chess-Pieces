@@ -1,4 +1,3 @@
-// Create new script: ChooseAIDifficultyUI.cs
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,11 +7,10 @@ public class ChooseAIDifficultyUI : MonoBehaviour
     [SerializeField] private Button easyButton;
     [SerializeField] private Button normalButton;
     [SerializeField] private Button hardButton;
-    [SerializeField] private Button backButton; // Optional, but highly recommended
+    [SerializeField] private Button backButton;
 
     private void Awake()
     {
-        // Add listeners to each button. They all call the same method, but pass a different difficulty.
         easyButton.onClick.AddListener(() => OnDifficultySelected(AIDifficulty.Easy));
         normalButton.onClick.AddListener(() => OnDifficultySelected(AIDifficulty.Normal));
         hardButton.onClick.AddListener(() => OnDifficultySelected(AIDifficulty.Hard));
@@ -25,13 +23,11 @@ public class ChooseAIDifficultyUI : MonoBehaviour
 
     private void OnDifficultySelected(AIDifficulty difficulty)
     {
-        // Tell the GameManager to start a new game with the chosen mode and difficulty.
         GameManager.Instance.StartNewGame(GameMode.AI, difficulty);
     }
 
     private void OnBackButtonClicked()
     {
-        // Tell the main UIManager to go back to the main menu.
         UIManager.Instance.ShowMenuPanel();
     }
 

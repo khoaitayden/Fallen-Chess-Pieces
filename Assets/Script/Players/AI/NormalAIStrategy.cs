@@ -1,66 +1,37 @@
-// In NormalAIStrategy.cs
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-
 public class NormalAIStrategy : IAIStrategy
 {
+    private static readonly System.Random _random = new System.Random();
+
     public MoveData GetBestMove(bool isWhite, Chessboard board)
     {
-        MoveData bestMove = default;
-        int bestMoveScore = int.MinValue;
+        BoardState boardState = board.CreateBoardState();
+        List<MoveData> allPossibleMoves = GetAllPossibleMoves(isWhite, boardState);
 
-        // --- GATHER ALL POSSIBLE MOVES ---
-        List<MoveData> allPossibleMoves = new List<MoveData>();
-        for (int x = 0; x < Constants.BOARD_SIZE; x++)
-        {
-            for (int y = 0; y < Constants.BOARD_SIZE; y++)
-            {
-                ChessPiece piece = board.GetPieceAt(new Vector2Int(x, y));
-                if (piece != null && piece.IsWhite == isWhite)
-                {
-                    List<Vector2Int> validMoves = MoveValidator.Instance.GetValidMoves(piece);
-                    foreach (var move in validMoves)
-                    {
-                        string notation = MoveConverter.ToDescriptiveNotation(piece, move);
-                        allPossibleMoves.Add(new MoveData(piece.Type, piece._boardPosition, move, notation));
-                    }
-                }
-            }
-        }
-
-        // If there are no moves, return an empty one.
         if (!allPossibleMoves.Any()) return default;
 
-        // --- EVALUATE EACH MOVE ---
+        MoveData bestMove = default;
+        int bestMoveScore = -1;
+
         foreach (var move in allPossibleMoves)
         {
             int currentMoveScore = 0;
-
-            // 1. Check for captures
-            ChessPiece pieceAtTarget = board.GetPieceAt(move.To);
+            var pieceAtTarget = boardState.Pieces[move.To.x, move.To.y];
             if (pieceAtTarget != null)
             {
-                // Score is the value of the piece we are capturing.
-                currentMoveScore = PieceValues.Values[pieceAtTarget.Type];
+                currentMoveScore = PieceValues.Values[pieceAtTarget.Value.Type];
             }
 
-            // 2. Simulate the move to check for checkmate (highest priority)
-            ChessPiece pieceToMove = board.GetPieceAt(move.From);
-            ChessPiece capturedPiece = board.SimulateMove(pieceToMove, move.To);
+            BoardState newState = new BoardState(boardState);
+            SimulateMoveOnState(newState, move);
 
-            // Check if this move results in checkmate against the opponent.
-            bool opponentIsWhite = !isWhite;
-            if (MoveValidator.Instance.IsCheckmate(opponentIsWhite))
+            if (MoveValidator.Instance.IsCheckmate(!isWhite, newState))
             {
-                currentMoveScore = int.MaxValue; // Checkmate is the best possible outcome.
+                currentMoveScore = int.MaxValue;
             }
 
-            // Undo the simulation to restore the board state for the next evaluation.
-            board.UndoSimulatedMove(pieceToMove, move.From, capturedPiece);
-
-
-            // 3. Compare with the best move found so far.
             if (currentMoveScore > bestMoveScore)
             {
                 bestMoveScore = currentMoveScore;
@@ -68,15 +39,46 @@ public class NormalAIStrategy : IAIStrategy
             }
         }
 
-        // If after checking all moves, no move had a score > 0 (e.g., no captures),
-        // then just make a random move.
-        if (bestMoveScore == 0)
+        if (bestMoveScore <= 0)
         {
-            Debug.Log("Normal AI: No high-value move found. Making a random move.");
-            return allPossibleMoves[Random.Range(0, allPossibleMoves.Count)];
+            int randomIndex = _random.Next(0, allPossibleMoves.Count);
+            return allPossibleMoves[randomIndex];
         }
 
-        Debug.Log($"Normal AI: Chose move with score {bestMoveScore}");
         return bestMove;
+    }
+
+    private void SimulateMoveOnState(BoardState state, MoveData move)
+    {
+        var pieceData = state.Pieces[move.From.x, move.From.y];
+        if (pieceData.HasValue)
+        {
+            var movedPiece = pieceData.Value;
+            movedPiece.HasMoved = true;
+            state.Pieces[move.To.x, move.To.y] = movedPiece;
+            state.Pieces[move.From.x, move.From.y] = null;
+        }
+    }
+
+    private List<MoveData> GetAllPossibleMoves(bool isWhite, BoardState boardState)
+    {
+        List<MoveData> allMoves = new List<MoveData>();
+        for (int x = 0; x < Constants.BOARD_SIZE; x++)
+        {
+            for (int y = 0; y < Constants.BOARD_SIZE; y++)
+            {
+                var pieceData = boardState.Pieces[x, y];
+                if (pieceData != null && pieceData.Value.IsWhite == isWhite)
+                {
+                    Vector2Int piecePosition = new Vector2Int(x, y);
+                    List<Vector2Int> validMoves = MoveValidator.Instance.GetValidMoves(piecePosition, boardState);
+                    foreach (var move in validMoves)
+                    {
+                        allMoves.Add(new MoveData(pieceData.Value.Type, piecePosition, move, ""));
+                    }
+                }
+            }
+        }
+        return allMoves;
     }
 }

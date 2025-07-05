@@ -15,7 +15,6 @@ public enum GameState { Playing, Checkmate, Stalemate, Draw, Timeout, Promotion 
 public enum AIDifficulty { Easy, Normal, Hard }
 public static class PieceValues
 {
-    // A dictionary to hold the material value of each piece type.
     public static readonly Dictionary<PieceType, int> Values = new Dictionary<PieceType, int>
     {
         { PieceType.Pawn, 10 },
@@ -23,6 +22,6 @@ public static class PieceValues
         { PieceType.Bishop, 30 },
         { PieceType.Rook, 50 },
         { PieceType.Queen, 90 },
-        { PieceType.King, 900 } // King value is very high to represent its importance
+        { PieceType.King, 900 } 
     };
 }

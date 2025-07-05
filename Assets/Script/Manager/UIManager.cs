@@ -6,7 +6,7 @@ public class UIManager : MonoBehaviour
 
     [Header("UI Controllers")]
     [SerializeField] private MainMenuUI menuUI;
-    [SerializeField] private ChooseAIDifficultyUI chooseAIDifficultyUI; // Add reference to the new UI
+    [SerializeField] private ChooseAIDifficultyUI chooseAIDifficultyUI;
     [SerializeField] private GameplayUI gameplayUI;
     [SerializeField] private GameOverUI gameOverUI;
     [SerializeField] private PromotionUI promotionUI;
@@ -25,7 +25,6 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-        // When the game first starts, show the main menu.
         ShowMenuPanel();
         if (GameManager.Instance != null)
         {
@@ -43,25 +42,23 @@ public class UIManager : MonoBehaviour
 
     private void HandleGameStateChanged(GameState newState)
     {
-        // When the game ends, show the game over screen on top of the gameplay screen.
         if (newState == GameState.Checkmate || newState == GameState.Stalemate || newState == GameState.Timeout || newState == GameState.Draw)
         {
             gameOverUI.Show(newState);
         }
     }
 
-    // --- PANEL MANAGEMENT METHODS ---
     public void ShowMenuPanel()
     {
         menuUI.Show();
-        chooseAIDifficultyUI.Hide(); // Make sure other panels are hidden
-        gameplayUI.gameObject.SetActive(false); // Hide the gameplay UI
+        chooseAIDifficultyUI.Hide();
+        gameplayUI.gameObject.SetActive(false); 
     }
 
     public void ShowAIDifficultyPanel()
     {
         menuUI.Hide();
-        chooseAIDifficultyUI.Show(); // Show the difficulty panel
+        chooseAIDifficultyUI.Show(); 
         gameplayUI.gameObject.SetActive(false);
     }
 
@@ -69,8 +66,7 @@ public class UIManager : MonoBehaviour
     {
         menuUI.Hide();
         chooseAIDifficultyUI.Hide();
-        gameplayUI.gameObject.SetActive(true); // Show the gameplay UI
-        // Also call the ShowPanel method if it exists
+        gameplayUI.gameObject.SetActive(true); 
         gameplayUI.ShowPanel();
     }
 

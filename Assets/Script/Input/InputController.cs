@@ -1,4 +1,3 @@
-// In InputController.cs
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -12,7 +11,6 @@ public class InputController : MonoBehaviour
 
     private ChessControls _chessControls;
 
-    // This is the crucial event that your HumanPlayer will listen for.
     public event Action<Vector2Int> OnBoardClick;
 
     private void Awake()
@@ -54,7 +52,6 @@ public class InputController : MonoBehaviour
         }
         else
         {
-            // If we click on empty space, send a "no position" signal.
             OnBoardClick?.Invoke(new Vector2Int(-1, -1));
         }
     }

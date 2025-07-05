@@ -1,11 +1,10 @@
-// In HardAIStrategy.cs
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 public class HardAIStrategy : IAIStrategy
 {
-    private const int SEARCH_DEPTH = 4;
+    private const int SEARCH_DEPTH = 3;
     private bool _aiIsWhite;
 
     public MoveData GetBestMove(bool isWhite, Chessboard board)
@@ -99,32 +98,25 @@ public class HardAIStrategy : IAIStrategy
         return _aiIsWhite ? totalScore : -totalScore;
     }
 
-    // --- HELPER METHODS THAT OPERATE ON BoardState ---
 
     private List<MoveData> GetAllPossibleMoves(bool isWhite, BoardState boardState)
     {
         List<MoveData> allMoves = new List<MoveData>();
 
-        // Loop through every square on the board.
         for (int x = 0; x < Constants.BOARD_SIZE; x++)
         {
             for (int y = 0; y < Constants.BOARD_SIZE; y++)
             {
                 var pieceData = boardState.Pieces[x, y];
 
-                // Check if there is a piece on the square and if it's the correct color.
                 if (pieceData != null && pieceData.Value.IsWhite == isWhite)
                 {
                     Vector2Int piecePosition = new Vector2Int(x, y);
 
-                    // Ask the MoveValidator for all valid moves for this piece in the current board state.
                     List<Vector2Int> validMoves = MoveValidator.Instance.GetValidMoves(piecePosition, boardState);
 
-                    // For each valid move, create a MoveData object and add it to our list.
                     foreach (var move in validMoves)
                     {
-                        // The notation can be empty here because the AI doesn't need it for its calculations.
-                        // We will generate the proper notation only for the final, chosen move.
                         allMoves.Add(new MoveData(pieceData.Value.Type, piecePosition, move, ""));
                     }
                 }
@@ -136,12 +128,31 @@ public class HardAIStrategy : IAIStrategy
     private void SimulateMoveOnState(BoardState state, MoveData move)
     {
         var pieceData = state.Pieces[move.From.x, move.From.y];
+
         if (pieceData.HasValue)
         {
             var movedPiece = pieceData.Value;
             movedPiece.HasMoved = true;
+
+            if (movedPiece.Type == PieceType.Pawn && move.To == state.EnPassantTargetSquare)
+            {
+                int captureDirection = movedPiece.IsWhite ? -1 : 1;
+                Vector2Int capturedPawnPos = new Vector2Int(move.To.x, move.To.y + captureDirection);
+                state.Pieces[capturedPawnPos.x, capturedPawnPos.y] = null;
+            }
+
             state.Pieces[move.To.x, move.To.y] = movedPiece;
             state.Pieces[move.From.x, move.From.y] = null;
+
+            if (movedPiece.Type == PieceType.Pawn && Mathf.Abs(move.To.y - move.From.y) == 2)
+            {
+                int direction = movedPiece.IsWhite ? -1 : 1;
+                state.EnPassantTargetSquare = new Vector2Int(move.To.x, move.To.y + direction);
+            }
+            else
+            {
+                state.EnPassantTargetSquare = new Vector2Int(-1, -1);
+            }
         }
     }
 }

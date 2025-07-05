@@ -1,7 +1,6 @@
-// In AIPlayer.cs
 using System.Collections;
 using UnityEngine;
-using System.Threading.Tasks; // Required for running on a separate thread
+using System.Threading.Tasks;
 
 public class AIPlayer : Player
 {
@@ -16,7 +15,6 @@ public class AIPlayer : Player
 
     public override void OnTurnStart()
     {
-        // We no longer use a coroutine. We start the threaded task directly.
         ThinkAndMakeMove();
     }
 
@@ -24,23 +22,14 @@ public class AIPlayer : Player
     {
         Debug.Log("AI Player's turn. Starting background task to think...");
 
-        // --- RUN ON A BACKGROUND THREAD ---
-        // Task.Run() executes the provided code on a thread pool thread.
-        // The 'await' keyword pauses this method without freezing the game,
-        // waiting for the background task to complete.
         MoveData bestMove = await Task.Run(() => _strategy.GetBestMove(this.IsWhite, _chessboard));
-        // ---------------------------------
 
         Debug.Log("AI has finished thinking. Executing move on main thread.");
 
-        // --- EXECUTE ON THE MAIN THREAD ---
-        // All Unity API calls (like moving GameObjects) MUST happen on the main thread.
-        // By this point, the 'await' is finished, and we are back on the main thread.
 
         if (bestMove.Equals(default(MoveData)))
         {
             Debug.LogWarning("AI strategy could not find a valid move.");
-            // Potentially force a game end here if this happens (e.g., stalemate)
             return;
         }
 
@@ -49,7 +38,6 @@ public class AIPlayer : Player
         TurnManager.Instance.SetEnPassantTarget(pieceToMove, bestMove.From, bestMove.To);
         TurnManager.Instance.SwitchTurn();
 
-        // We need to re-generate the notation here as it was empty in the AI's MoveData
         bool isCheck = MoveValidator.Instance.IsInCheck(TurnManager.Instance.IsWhiteTurn);
         bool isCheckmate = MoveValidator.Instance.IsCheckmate(TurnManager.Instance.IsWhiteTurn);
         string notation = MoveConverter.ToDescriptiveNotation(pieceToMove, bestMove.To);

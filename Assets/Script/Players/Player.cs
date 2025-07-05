@@ -1,4 +1,3 @@
-// Create new script: Player.cs
 public abstract class Player
 {
     public readonly bool IsWhite;
@@ -9,7 +8,5 @@ public abstract class Player
         IsWhite = isWhite;
         Type = type;
     }
-
-    // This method is called by the GameManager when it's this player's turn to move.
     public abstract void OnTurnStart();
 }

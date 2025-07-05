@@ -1,4 +1,3 @@
-// In HumanPlayer.cs
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -22,17 +21,14 @@ public class HumanPlayer : Player
     {
         if (GameManager.Instance.CurrentState != GameState.Playing) return;
 
-        // Scenario 1: A piece is already selected
         if (_selectedPiece != null)
         {
-            // If the clicked position is a valid move, make the move.
             if (_validMoves != null && _validMoves.Contains(position))
             {
                 MakeMove(position);
                 return;
             }
 
-            // If not a valid move, check if we are selecting another friendly piece.
             ChessPiece pieceAtPos = _chessboard.GetPieceAt(position);
             if (pieceAtPos != null && pieceAtPos.IsWhite == this.IsWhite)
             {
@@ -41,42 +37,31 @@ public class HumanPlayer : Player
                 return;
             }
 
-            // Otherwise, just deselect.
             DeselectPiece();
         }
-        // Scenario 2: No piece is selected, try to select one.
         else
         {
             AttemptSelection(position);
         }
     }
 
-    /// <summary>
-    /// This is the single, reliable place where a move is executed and the turn ends.
-    /// </summary>
     private void MakeMove(Vector2Int toPosition)
     {
-        // 1. Unsubscribe from input immediately. This player's job is done.
         InputController.Instance.OnBoardClick -= HandleBoardClick;
 
-        // 2. Gather info and execute the move on the board.
         Vector2Int oldPosition = _selectedPiece._boardPosition;
         _chessboard.MovePiece(_selectedPiece, toPosition);
         TurnManager.Instance.SetEnPassantTarget(_selectedPiece, oldPosition, toPosition);
 
-        // 3. Switch the logical turn.
         TurnManager.Instance.SwitchTurn();
 
-        // 4. Record the move in history.
         string notation = MoveConverter.ToDescriptiveNotation(_selectedPiece, toPosition);
         MoveData move = new MoveData(_selectedPiece.Type, oldPosition, toPosition, notation);
         MoveHistory.Instance.AddMove(move);
 
-        // 5. Clean up selection and check for game end.
         DeselectPiece();
         GameManager.Instance.CheckForGameEnd();
 
-        // 6. If the game is still going, notify the next player to start their turn.
         if (GameManager.Instance.CurrentState == GameState.Playing)
         {
             GameManager.Instance.NotifyCurrentPlayer();
