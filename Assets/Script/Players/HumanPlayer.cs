@@ -50,9 +50,26 @@ public class HumanPlayer : Player
         InputController.Instance.OnBoardClick -= HandleBoardClick;
 
         Vector2Int oldPosition = _selectedPiece._boardPosition;
-        _chessboard.MovePiece(_selectedPiece, toPosition);
-        TurnManager.Instance.SetEnPassantTarget(_selectedPiece, oldPosition, toPosition);
+        
+        // --- CHECK FOR PROMOTION BEFORE SWITCHING TURN ---
+        bool isPromotion = (_selectedPiece.Type == PieceType.Pawn && 
+                        (_selectedPiece.IsWhite && toPosition.y == 7 || 
+                        !_selectedPiece.IsWhite && toPosition.y == 0));
 
+        // --- EXECUTE MOVE ---
+        _chessboard.MovePiece(_selectedPiece, toPosition);
+        
+        // If a promotion was initiated, the GameManager is now in control.
+        // This player's turn logic should stop here.
+        if (isPromotion)
+        {
+            // The GameManager will handle the rest of the turn flow after a choice is made.
+            DeselectPiece(); // Clean up the selection visuals.
+            return; 
+        }
+
+        // --- STANDARD TURN COMPLETION (NO PROMOTION) ---
+        TurnManager.Instance.SetEnPassantTarget(_selectedPiece, oldPosition, toPosition);
         TurnManager.Instance.SwitchTurn();
 
         string notation = MoveConverter.ToDescriptiveNotation(_selectedPiece, toPosition);

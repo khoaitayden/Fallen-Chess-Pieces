@@ -21,11 +21,8 @@ public class AIPlayer : Player
     private async void ThinkAndMakeMove()
     {
         Debug.Log("AI Player's turn. Starting background task to think...");
-
         MoveData bestMove = await Task.Run(() => _strategy.GetBestMove(this.IsWhite, _chessboard));
-
         Debug.Log("AI has finished thinking. Executing move on main thread.");
-
 
         if (bestMove.Equals(default(MoveData)))
         {
@@ -34,16 +31,25 @@ public class AIPlayer : Player
         }
 
         ChessPiece pieceToMove = _chessboard.GetPieceAt(bestMove.From);
+
+        bool isPromotion = (pieceToMove.Type == PieceType.Pawn &&
+                        (pieceToMove.IsWhite && bestMove.To.y == 7 ||
+                        !pieceToMove.IsWhite && bestMove.To.y == 0));
+
         _chessboard.MovePiece(pieceToMove, bestMove.To);
+
+        if (isPromotion)
+        {
+            return;
+        }
+
         TurnManager.Instance.SetEnPassantTarget(pieceToMove, bestMove.From, bestMove.To);
         TurnManager.Instance.SwitchTurn();
 
-        bool isCheck = MoveValidator.Instance.IsInCheck(TurnManager.Instance.IsWhiteTurn);
-        bool isCheckmate = MoveValidator.Instance.IsCheckmate(TurnManager.Instance.IsWhiteTurn);
         string notation = MoveConverter.ToDescriptiveNotation(pieceToMove, bestMove.To);
         MoveData finalMove = new MoveData(bestMove.Piece, bestMove.From, bestMove.To, notation);
-        
         MoveHistory.Instance.AddMove(finalMove);
+        
         GameManager.Instance.CheckForGameEnd();
 
         if (GameManager.Instance.CurrentState == GameState.Playing)

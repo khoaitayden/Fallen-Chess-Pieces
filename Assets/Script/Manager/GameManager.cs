@@ -124,8 +124,19 @@ public class GameManager : MonoBehaviour
     public void InitiatePawnPromotion(ChessPiece pawn)
     {
         _pawnToPromote = pawn;
-        ChangeState(GameState.Promotion);
-        UIManager.Instance.ShowPromotionPanel(pawn.IsWhite);
+        ChangeState(GameState.Promotion); 
+
+        Player currentPlayer = GetCurrentPlayer();
+
+        if (currentPlayer.Type == PlayerType.Human)
+        {
+            UIManager.Instance.ShowPromotionPanel(pawn.IsWhite);
+        }
+        else if (currentPlayer.Type == PlayerType.AI)
+        {
+            Debug.Log("AI is promoting a pawn to a Queen.");
+            FinalizePawnPromotion(PieceType.Queen);
+        }
     }
 
     public void FinalizePawnPromotion(PieceType newPieceType)
@@ -133,12 +144,18 @@ public class GameManager : MonoBehaviour
         if (_pawnToPromote == null) return;
 
         ChessPieceManager.Instance.PromotePawn(_pawnToPromote, newPieceType);
+        AudioManager.Instance.PlayPromotionSound();
         _pawnToPromote = null;
 
         ChangeState(GameState.Playing);
-        UIManager.Instance.HidePromotionPanel();
-        AudioManager.Instance.PlayPromotionSound();
+        if (UIManager.Instance != null) UIManager.Instance.HidePromotionPanel();
+
         CheckForGameEnd();
+
+        if (CurrentState == GameState.Playing)
+        {
+            NotifyCurrentPlayer();
+        }
     }
 
     private void ChangeState(GameState newState)
