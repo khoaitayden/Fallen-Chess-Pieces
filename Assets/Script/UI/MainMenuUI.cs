@@ -21,7 +21,7 @@ public class MainMenuUI : MonoBehaviour
     {
         GameManager.Instance.StartNewGame(GameMode.Local);
     }
-
+    
     private void OnPlayerVsAIClicked()
     {
         UIManager.Instance.ShowAIDifficultyPanel();
@@ -29,7 +29,7 @@ public class MainMenuUI : MonoBehaviour
 
     private void OnOnlineClicked()
     {
-        Debug.Log("Online mode is not yet implemented.");
+        UIManager.Instance.ShowOnlinePanel();
     }
 
     private void OnQuitClicked()

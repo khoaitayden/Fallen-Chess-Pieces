@@ -66,16 +66,16 @@ public class GameManager : MonoBehaviour
             GameplayUI.Instance.ClearCapturedPieceUI();
         }
         PieceCaptureManager.Instance.ClearCapturedLists();
-        
+
         Chessboard.Instance.GenerateBoard();
         ChessPieceManager.Instance.SpawnAllPieces();
         TurnManager.Instance.StartNewGame();
 
         UIManager.Instance.ShowGameplayPanel();
         ChangeState(GameState.Playing);
-        
+
         Debug.Log($"New game started in {CurrentGameMode} mode (Difficulty: {difficulty}). It's White's turn.");
-        
+
         BoardPresenter.Instance.OrientBoardToPlayer(true);
         NotifyCurrentPlayer();
     }
@@ -124,7 +124,7 @@ public class GameManager : MonoBehaviour
     public void InitiatePawnPromotion(ChessPiece pawn)
     {
         _pawnToPromote = pawn;
-        ChangeState(GameState.Promotion); 
+        ChangeState(GameState.Promotion);
 
         Player currentPlayer = GetCurrentPlayer();
 
@@ -177,5 +177,44 @@ public class GameManager : MonoBehaviour
     public Player GetBlackPlayer()
     {
         return blackPlayer;
+    }
+
+    //Online shit
+    
+    public void StartOnlineGame(bool iAmWhite, NetworkMoveRelay localPlayerRelay)
+    {
+        CurrentGameMode = GameMode.Online;
+
+        if (iAmWhite)
+        {
+            // Give the HumanPlayer a reference to its relay component.
+            whitePlayer = new HumanPlayer(true, localPlayerRelay);
+            blackPlayer = new OnlinePlayer(false);
+        }
+        else
+        {
+            whitePlayer = new OnlinePlayer(true);
+            // Give the HumanPlayer a reference to its relay component.
+            blackPlayer = new HumanPlayer(false, localPlayerRelay);
+        }
+
+        // --- The rest of the method is the same ---
+        MoveHistory.Instance.ClearHistory();
+        if (GameplayUI.Instance != null)
+        {
+            GameplayUI.Instance.ClearLastMoveDisplay();
+            GameplayUI.Instance.ClearCapturedPieceUI();
+        }
+        PieceCaptureManager.Instance.ClearCapturedLists();
+        
+        Chessboard.Instance.GenerateBoard();
+        ChessPieceManager.Instance.SpawnAllPieces();
+        TurnManager.Instance.StartNewGame();
+
+        UIManager.Instance.ShowGameplayPanel();
+        ChangeState(GameState.Playing);
+        
+        BoardPresenter.Instance.OrientBoardToPlayer(iAmWhite);
+        NotifyCurrentPlayer();
     }
 }

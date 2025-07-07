@@ -10,6 +10,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameplayUI gameplayUI;
     [SerializeField] private GameOverUI gameOverUI;
     [SerializeField] private PromotionUI promotionUI;
+    [SerializeField] private OnlineUI onlineUI;
 
     private void Awake()
     {
@@ -68,6 +69,11 @@ public class UIManager : MonoBehaviour
         chooseAIDifficultyUI.Hide();
         gameplayUI.gameObject.SetActive(true); 
         gameplayUI.ShowPanel();
+    }
+    public void ShowOnlinePanel()
+    {
+        menuUI.Hide();
+        onlineUI.Show();
     }
 
     public void HideGameplayPanel()

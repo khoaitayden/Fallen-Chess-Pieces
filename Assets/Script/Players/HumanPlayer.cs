@@ -7,9 +7,21 @@ public class HumanPlayer : Player
     private List<Vector2Int> _validMoves;
     private Chessboard _chessboard;
 
+    //online
+    private NetworkMoveRelay _moveRelay;
+
+    // Constructor for Local games
     public HumanPlayer(bool isWhite) : base(isWhite, PlayerType.Human)
     {
         _chessboard = Object.FindObjectOfType<Chessboard>();
+        _moveRelay = null; // Not used in local games
+    }
+
+    // Constructor for Online games
+    public HumanPlayer(bool isWhite, NetworkMoveRelay moveRelay) : base(isWhite, PlayerType.Human)
+    {
+        _chessboard = Object.FindObjectOfType<Chessboard>();
+        _moveRelay = moveRelay;
     }
 
     public override void OnTurnStart()
@@ -28,7 +40,6 @@ public class HumanPlayer : Player
                 MakeMove(position);
                 return;
             }
-
             ChessPiece pieceAtPos = _chessboard.GetPieceAt(position);
             if (pieceAtPos != null && pieceAtPos.IsWhite == this.IsWhite)
             {
@@ -36,7 +47,6 @@ public class HumanPlayer : Player
                 SelectPiece(pieceAtPos);
                 return;
             }
-
             DeselectPiece();
         }
         else
@@ -49,39 +59,39 @@ public class HumanPlayer : Player
     {
         InputController.Instance.OnBoardClick -= HandleBoardClick;
 
-        Vector2Int oldPosition = _selectedPiece._boardPosition;
-        
-        // --- CHECK FOR PROMOTION BEFORE SWITCHING TURN ---
-        bool isPromotion = (_selectedPiece.Type == PieceType.Pawn && 
-                        (_selectedPiece.IsWhite && toPosition.y == 7 || 
-                        !_selectedPiece.IsWhite && toPosition.y == 0));
-
-        // --- EXECUTE MOVE ---
-        _chessboard.MovePiece(_selectedPiece, toPosition);
-        
-        // If a promotion was initiated, the GameManager is now in control.
-        // This player's turn logic should stop here.
-        if (isPromotion)
+        // --- NEW UNIFIED LOGIC ---
+        if (GameManager.Instance.CurrentGameMode == GameMode.Online && _moveRelay != null)
         {
-            // The GameManager will handle the rest of the turn flow after a choice is made.
-            DeselectPiece(); // Clean up the selection visuals.
-            return; 
+            // Online Mode: Send a command to the server via our relay.
+            _moveRelay.CmdSendMove(_selectedPiece._boardPosition, toPosition);
+            DeselectPiece();
         }
-
-        // --- STANDARD TURN COMPLETION (NO PROMOTION) ---
-        TurnManager.Instance.SetEnPassantTarget(_selectedPiece, oldPosition, toPosition);
-        TurnManager.Instance.SwitchTurn();
-
-        string notation = MoveConverter.ToDescriptiveNotation(_selectedPiece, toPosition);
-        MoveData move = new MoveData(_selectedPiece.Type, oldPosition, toPosition, notation);
-        MoveHistory.Instance.AddMove(move);
-
-        DeselectPiece();
-        GameManager.Instance.CheckForGameEnd();
-
-        if (GameManager.Instance.CurrentState == GameState.Playing)
+        else
         {
-            GameManager.Instance.NotifyCurrentPlayer();
+            // Local/AI Mode: Execute the move directly.
+            Vector2Int oldPosition = _selectedPiece._boardPosition;
+            _chessboard.MovePiece(_selectedPiece, toPosition);
+            
+            if (_selectedPiece.Type == PieceType.Pawn && (toPosition.y == 0 || toPosition.y == 7))
+            {
+                DeselectPiece();
+                return; // GameManager handles promotion flow
+            }
+
+            TurnManager.Instance.SetEnPassantTarget(_selectedPiece, oldPosition, toPosition);
+            TurnManager.Instance.SwitchTurn();
+
+            string notation = MoveConverter.ToDescriptiveNotation(_selectedPiece, toPosition);
+            MoveData move = new MoveData(_selectedPiece.Type, oldPosition, toPosition, notation);
+            MoveHistory.Instance.AddMove(move);
+
+            DeselectPiece();
+            GameManager.Instance.CheckForGameEnd();
+
+            if (GameManager.Instance.CurrentState == GameState.Playing)
+            {
+                GameManager.Instance.NotifyCurrentPlayer();
+            }
         }
     }
 
@@ -94,15 +104,13 @@ public class HumanPlayer : Player
             SelectPiece(piece);
         }
     }
-
     private void SelectPiece(ChessPiece piece)
     {
         _selectedPiece = piece;
-        _validMoves = MoveValidator.Instance.GetValidMoves(_selectedPiece);
+        _validMoves = MoveValidator.Instance.GetValidMoves(piece);
         HighlightValidMoves();
         _selectedPiece.SelectPiece();
     }
-
     private void DeselectPiece()
     {
         if (_selectedPiece == null) return;
@@ -111,7 +119,6 @@ public class HumanPlayer : Player
         _validMoves?.Clear();
         ClearHighlights();
     }
-
     private void HighlightValidMoves()
     {
         if (_validMoves == null) return;
@@ -120,7 +127,6 @@ public class HumanPlayer : Player
             _chessboard.GetSquareAt(move)?.SetHighlight(true);
         }
     }
-
     private void ClearHighlights()
     {
         for (int x = 0; x < Constants.BOARD_SIZE; x++)
