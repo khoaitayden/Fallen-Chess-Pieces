@@ -1,4 +1,3 @@
-// In NetworkPlayer.cs
 using UnityEngine;
 using Mirror;
 
@@ -8,11 +7,18 @@ public class NetworkPlayer : NetworkBehaviour
     public void RpcStartGame(bool iAmWhite)
     {
         if (!isOwned) return;
-
-        Debug.Log($"Received StartGame command. I am {(iAmWhite ? "White" : "Black")}");
-        
-        // Pass our NetworkMoveRelay component to the GameManager so the HumanPlayer can use it.
         NetworkMoveRelay myRelay = GetComponent<NetworkMoveRelay>();
         GameManager.Instance.StartOnlineGame(iAmWhite, myRelay);
+    }
+    [ClientRpc]
+    public void RpcUpdateLobbyUI(int playerCount, bool isHost)
+    {
+        if (!isOwned) return;
+        
+        LobbyUI lobby = FindObjectOfType<LobbyUI>();
+        if (lobby != null)
+        {
+            lobby.UpdateLobbyUI(playerCount, isHost);
+        }
     }
 }

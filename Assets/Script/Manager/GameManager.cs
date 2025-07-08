@@ -198,7 +198,6 @@ public class GameManager : MonoBehaviour
             blackPlayer = new HumanPlayer(false, localPlayerRelay);
         }
 
-        // --- The rest of the method is the same ---
         MoveHistory.Instance.ClearHistory();
         if (GameplayUI.Instance != null)
         {
@@ -215,6 +214,14 @@ public class GameManager : MonoBehaviour
         ChangeState(GameState.Playing);
         
         BoardPresenter.Instance.OrientBoardToPlayer(iAmWhite);
-        NotifyCurrentPlayer();
+        if (whitePlayer.Type == PlayerType.Human)
+        {
+            whitePlayer.OnTurnStart();
+        }
+        else
+        {
+            whitePlayer.OnTurnStart();
+        }
+            NotifyCurrentPlayer();
     }
 }

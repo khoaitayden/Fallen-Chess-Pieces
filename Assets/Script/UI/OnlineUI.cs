@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using Mirror; // Add the Mirror namespace
+using Mirror;
 
 public class OnlineUI : MonoBehaviour
 {
@@ -31,9 +31,8 @@ public class OnlineUI : MonoBehaviour
 
     private void OnCreateRoomClicked()
     {
-        // Get the singleton instance from Mirror's NetworkManager.
         NetworkManager.singleton.StartHost();
-        Hide();
+        UIManager.Instance.ShowLobbyPanel();
     }
 
     private void OnJoinRoomClicked()
@@ -49,9 +48,9 @@ public class OnlineUI : MonoBehaviour
             address = "localhost";
         }
         
-        // Get the singleton instance and set the address before starting.
         NetworkManager.singleton.networkAddress = address;
         NetworkManager.singleton.StartClient();
+        UIManager.Instance.ShowLobbyPanel();
         Hide();
     }
 
@@ -59,7 +58,7 @@ public class OnlineUI : MonoBehaviour
     {
         joinRoomPanel.SetActive(false);
     }
-
+    
     public void Show() => gameObject.SetActive(true);
     public void Hide() => gameObject.SetActive(false);
 }

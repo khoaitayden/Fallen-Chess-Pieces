@@ -10,14 +10,12 @@ public class HumanPlayer : Player
     //online
     private NetworkMoveRelay _moveRelay;
 
-    // Constructor for Local games
     public HumanPlayer(bool isWhite) : base(isWhite, PlayerType.Human)
     {
         _chessboard = Object.FindObjectOfType<Chessboard>();
-        _moveRelay = null; // Not used in local games
+        _moveRelay = null;
     }
 
-    // Constructor for Online games
     public HumanPlayer(bool isWhite, NetworkMoveRelay moveRelay) : base(isWhite, PlayerType.Human)
     {
         _chessboard = Object.FindObjectOfType<Chessboard>();
@@ -62,20 +60,19 @@ public class HumanPlayer : Player
         // --- NEW UNIFIED LOGIC ---
         if (GameManager.Instance.CurrentGameMode == GameMode.Online && _moveRelay != null)
         {
-            // Online Mode: Send a command to the server via our relay.
-            _moveRelay.CmdSendMove(_selectedPiece._boardPosition, toPosition);
-            DeselectPiece();
+        InputController.Instance.OnBoardClick -= HandleBoardClick; // Stop listening
+        _moveRelay.CmdSendMove(_selectedPiece._boardPosition, toPosition);
+        DeselectPiece();
         }
         else
         {
-            // Local/AI Mode: Execute the move directly.
             Vector2Int oldPosition = _selectedPiece._boardPosition;
             _chessboard.MovePiece(_selectedPiece, toPosition);
             
             if (_selectedPiece.Type == PieceType.Pawn && (toPosition.y == 0 || toPosition.y == 7))
             {
                 DeselectPiece();
-                return; // GameManager handles promotion flow
+                return; 
             }
 
             TurnManager.Instance.SetEnPassantTarget(_selectedPiece, oldPosition, toPosition);

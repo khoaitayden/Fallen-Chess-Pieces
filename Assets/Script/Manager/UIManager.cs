@@ -6,27 +6,24 @@ public class UIManager : MonoBehaviour
 
     [Header("UI Controllers")]
     [SerializeField] private MainMenuUI menuUI;
+    [SerializeField] private OnlineUI onlineUI;
+    [SerializeField] private LobbyUI lobbyUI;
     [SerializeField] private ChooseAIDifficultyUI chooseAIDifficultyUI;
     [SerializeField] private GameplayUI gameplayUI;
     [SerializeField] private GameOverUI gameOverUI;
     [SerializeField] private PromotionUI promotionUI;
-    [SerializeField] private OnlineUI onlineUI;
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-        }
-        else
-        {
-            Instance = this;
-        }
+        if (Instance != null && Instance != this) { Destroy(gameObject); }
+        else { Instance = this; }
     }
 
     private void Start()
     {
+        // When the game first launches, only the main menu should be visible.
         ShowMenuPanel();
+
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnGameStateChanged += HandleGameStateChanged;
@@ -49,37 +46,47 @@ public class UIManager : MonoBehaviour
         }
     }
 
+
     public void ShowMenuPanel()
     {
         menuUI.Show();
+        onlineUI.Hide();
+        lobbyUI.Hide();
         chooseAIDifficultyUI.Hide();
-        gameplayUI.gameObject.SetActive(false); 
+        gameplayUI.HidePanel();
+    }
+
+    public void ShowOnlinePanel()
+    {
+        menuUI.Hide();
+        onlineUI.Show();
+        lobbyUI.Hide();
+    }
+
+    public void ShowLobbyPanel()
+    {
+        menuUI.Hide();
+        onlineUI.Hide();
+        lobbyUI.Show();
     }
 
     public void ShowAIDifficultyPanel()
     {
         menuUI.Hide();
-        chooseAIDifficultyUI.Show(); 
-        gameplayUI.gameObject.SetActive(false);
+        onlineUI.Hide();
+        chooseAIDifficultyUI.Show();
     }
 
     public void ShowGameplayPanel()
     {
         menuUI.Hide();
+        onlineUI.Hide();
+        lobbyUI.Hide();
         chooseAIDifficultyUI.Hide();
-        gameplayUI.gameObject.SetActive(true); 
+        
         gameplayUI.ShowPanel();
     }
-    public void ShowOnlinePanel()
-    {
-        menuUI.Hide();
-        onlineUI.Show();
-    }
 
-    public void HideGameplayPanel()
-    {
-        gameplayUI.HidePanel();
-    }
 
     public void ShowPromotionPanel(bool isWhite)
     {
@@ -89,10 +96,5 @@ public class UIManager : MonoBehaviour
     public void HidePromotionPanel()
     {
         promotionUI.HidePanel();
-    }
-
-    public void HideAIDifficultyPanel()
-    {
-        chooseAIDifficultyUI.Hide();
     }
 }
