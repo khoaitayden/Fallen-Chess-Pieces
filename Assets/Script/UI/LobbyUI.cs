@@ -22,21 +22,14 @@ public class LobbyUI : MonoBehaviour
 
     public void UpdateLobbyUI(int playerCount, bool isHost)
     {
-        // The Start Game button should only be clickable by the host, and only when there are 2 players.
         startGameButton.gameObject.SetActive(isHost && playerCount == 2);
 
-        if (playerCount < 2)
-        {
-            statusText.text = "Waiting for opponent...";
-        }
-        else
-        {
-            statusText.text = "Opponent has joined!";
-        }
+        statusText.text = (playerCount < 2) ? "Waiting for opponent..." : "Opponent has joined!";
 
         if (isHost)
         {
-            roomCodeText.text = $"Room Code: {NetworkManager.singleton.networkAddress}";
+            // Use our NetworkUtils helper to show the real, connectable IP address.
+            roomCodeText.text = $"Room IP: {NetworkUtils.GetLocalIPv4()}";
         }
         else
         {
