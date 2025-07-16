@@ -23,7 +23,8 @@ public class ChooseAIDifficultyUI : MonoBehaviour
 
     private void OnDifficultySelected(AIDifficulty difficulty)
     {
-        GameManager.Instance.StartNewGame(GameMode.AI, difficulty);
+        GameManager.Instance.StartAIGame(difficulty);
+        // -----------------------
     }
 
     private void OnBackButtonClicked()

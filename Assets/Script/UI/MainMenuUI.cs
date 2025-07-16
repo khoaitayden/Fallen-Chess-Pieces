@@ -19,7 +19,6 @@ public class MainMenuUI : MonoBehaviour
 
     private void OnPlayerVsPlayerClicked()
     {
-        GameManager.Instance.StartNewGame(GameMode.Local);
     }
     
     private void OnPlayerVsAIClicked()

@@ -1,30 +1,25 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HumanPlayer : Player
+public class LocalPlayerController : MonoBehaviour
 {
     private ChessPiece _selectedPiece;
     private List<Vector2Int> _validMoves;
     private Chessboard _chessboard;
 
-    //online
-    private NetworkMoveRelay _moveRelay;
-
-    public HumanPlayer(bool isWhite) : base(isWhite, PlayerType.Human)
+    private void Awake()
     {
-        _chessboard = Object.FindObjectOfType<Chessboard>();
-        _moveRelay = null;
+        _chessboard = FindObjectOfType<Chessboard>();
     }
 
-    public HumanPlayer(bool isWhite, NetworkMoveRelay moveRelay) : base(isWhite, PlayerType.Human)
-    {
-        _chessboard = Object.FindObjectOfType<Chessboard>();
-        _moveRelay = moveRelay;
-    }
-
-    public override void OnTurnStart()
+    private void OnEnable()
     {
         InputController.Instance.OnBoardClick += HandleBoardClick;
+    }
+
+    private void OnDisable()
+    {
+        InputController.Instance.OnBoardClick -= HandleBoardClick;
     }
 
     private void HandleBoardClick(Vector2Int position)
@@ -39,7 +34,7 @@ public class HumanPlayer : Player
                 return;
             }
             ChessPiece pieceAtPos = _chessboard.GetPieceAt(position);
-            if (pieceAtPos != null && pieceAtPos.IsWhite == this.IsWhite)
+            if (pieceAtPos != null && pieceAtPos.IsWhite == TurnManager.Instance.IsWhiteTurn)
             {
                 DeselectPiece();
                 SelectPiece(pieceAtPos);
@@ -55,14 +50,6 @@ public class HumanPlayer : Player
 
     private void MakeMove(Vector2Int toPosition)
     {
-        if (GameManager.Instance.CurrentGameMode == GameMode.Online && _moveRelay != null)
-        {
-            InputController.Instance.OnBoardClick -= HandleBoardClick;
-            _moveRelay.CmdSendMove(_selectedPiece._boardPosition, toPosition);
-            DeselectPiece();
-            return;
-        }
-
         Vector2Int oldPosition = _selectedPiece._boardPosition;
         _chessboard.MovePiece(_selectedPiece, toPosition);
 
@@ -81,23 +68,18 @@ public class HumanPlayer : Player
 
         DeselectPiece();
         GameManager.Instance.CheckForGameEnd();
-
-        if (GameManager.Instance.CurrentState == GameState.Playing)
-        {
-            InputController.Instance.OnBoardClick -= HandleBoardClick;
-            GameManager.Instance.NotifyCurrentPlayer();
-        }
     }
 
     private void AttemptSelection(Vector2Int position)
     {
         if (position == new Vector2Int(-1, -1)) return;
         ChessPiece piece = _chessboard.GetPieceAt(position);
-        if (piece != null && piece.IsWhite == this.IsWhite)
+        if (piece != null && piece.IsWhite == TurnManager.Instance.IsWhiteTurn)
         {
             SelectPiece(piece);
         }
     }
+
     private void SelectPiece(ChessPiece piece)
     {
         _selectedPiece = piece;
@@ -105,6 +87,7 @@ public class HumanPlayer : Player
         HighlightValidMoves();
         _selectedPiece.SelectPiece();
     }
+
     private void DeselectPiece()
     {
         if (_selectedPiece == null) return;
@@ -113,6 +96,7 @@ public class HumanPlayer : Player
         _validMoves?.Clear();
         ClearHighlights();
     }
+
     private void HighlightValidMoves()
     {
         if (_validMoves == null) return;
@@ -121,6 +105,7 @@ public class HumanPlayer : Player
             _chessboard.GetSquareAt(move)?.SetHighlight(true);
         }
     }
+
     private void ClearHighlights()
     {
         for (int x = 0; x < Constants.BOARD_SIZE; x++)

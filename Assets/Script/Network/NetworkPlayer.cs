@@ -6,14 +6,16 @@ public class NetworkPlayer : NetworkBehaviour
     [ClientRpc]
     public void RpcStartGame(bool iAmWhite)
     {
-        if (!isOwned) return;
+        if (!isLocalPlayer) return;
+
         NetworkMoveRelay myRelay = GetComponent<NetworkMoveRelay>();
         GameManager.Instance.StartOnlineGame(iAmWhite, myRelay);
     }
+
     [ClientRpc]
     public void RpcUpdateLobbyUI(int playerCount, bool isHost)
     {
-        if (!isOwned) return;
+        if (!isLocalPlayer) return;
         
         LobbyUI lobby = FindObjectOfType<LobbyUI>();
         if (lobby != null)

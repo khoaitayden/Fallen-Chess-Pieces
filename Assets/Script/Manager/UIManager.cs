@@ -21,9 +21,7 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-        // When the game first launches, only the main menu should be visible.
         ShowMenuPanel();
-
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnGameStateChanged += HandleGameStateChanged;
@@ -46,55 +44,46 @@ public class UIManager : MonoBehaviour
         }
     }
 
-
-    public void ShowMenuPanel()
+    // --- ROBUST PANEL MANAGEMENT ---
+    private void HideAllPanels()
     {
-        menuUI.Show();
+        menuUI.Hide();
         onlineUI.Hide();
         lobbyUI.Hide();
         chooseAIDifficultyUI.Hide();
         gameplayUI.HidePanel();
     }
 
+    public void ShowMenuPanel()
+    {
+        HideAllPanels();
+        menuUI.Show();
+    }
+
     public void ShowOnlinePanel()
     {
-        menuUI.Hide();
+        HideAllPanels();
         onlineUI.Show();
-        lobbyUI.Hide();
     }
 
     public void ShowLobbyPanel()
     {
-        menuUI.Hide();
-        onlineUI.Hide();
+        HideAllPanels();
         lobbyUI.Show();
     }
 
     public void ShowAIDifficultyPanel()
     {
-        menuUI.Hide();
-        onlineUI.Hide();
+        HideAllPanels();
         chooseAIDifficultyUI.Show();
     }
 
     public void ShowGameplayPanel()
     {
-        menuUI.Hide();
-        onlineUI.Hide();
-        lobbyUI.Hide();
-        chooseAIDifficultyUI.Hide();
-        
+        HideAllPanels();
         gameplayUI.ShowPanel();
     }
 
-
-    public void ShowPromotionPanel(bool isWhite)
-    {
-        promotionUI.ShowPanel(isWhite);
-    }
-
-    public void HidePromotionPanel()
-    {
-        promotionUI.HidePanel();
-    }
+    public void ShowPromotionPanel(bool isWhite) => promotionUI.ShowPanel(isWhite);
+    public void HidePromotionPanel() => promotionUI.HidePanel();
 }
