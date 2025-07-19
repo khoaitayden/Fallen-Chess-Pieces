@@ -53,41 +53,34 @@ public class HumanPlayer : Player
         }
     }
 
-    private void MakeMove(Vector2Int toPosition)
+private void MakeMove(Vector2Int toPosition)
+{
+    InputController.Instance.OnBoardClick -= HandleBoardClick;
+    Vector2Int oldPosition = _selectedPiece._boardPosition;
+    _chessboard.MovePiece(_selectedPiece, toPosition);
+
+    if (_selectedPiece.Type == PieceType.Pawn && (toPosition.y == 0 || toPosition.y == 7))
     {
-        if (GameManager.Instance.CurrentGameMode == GameMode.Online && _moveRelay != null)
-        {
-            InputController.Instance.OnBoardClick -= HandleBoardClick;
-            _moveRelay.CmdSendMove(_selectedPiece._boardPosition, toPosition);
-            DeselectPiece();
-            return;
-        }
-
-        Vector2Int oldPosition = _selectedPiece._boardPosition;
-        _chessboard.MovePiece(_selectedPiece, toPosition);
-
-        if (_selectedPiece.Type == PieceType.Pawn && (toPosition.y == 0 || toPosition.y == 7))
-        {
-            DeselectPiece();
-            return;
-        }
-
-        TurnManager.Instance.SetEnPassantTarget(_selectedPiece, oldPosition, toPosition);
-        TurnManager.Instance.SwitchTurn();
-
-        string notation = MoveConverter.ToDescriptiveNotation(_selectedPiece, toPosition);
-        MoveData move = new MoveData(_selectedPiece.Type, oldPosition, toPosition, notation);
-        MoveHistory.Instance.AddMove(move);
-
         DeselectPiece();
-        GameManager.Instance.CheckForGameEnd();
-
-        if (GameManager.Instance.CurrentState == GameState.Playing)
-        {
-            InputController.Instance.OnBoardClick -= HandleBoardClick;
-            GameManager.Instance.NotifyCurrentPlayer();
-        }
+        return;
     }
+
+    TurnManager.Instance.SetEnPassantTarget(_selectedPiece, oldPosition, toPosition);
+
+    TurnManager.Instance.SwitchTurn();
+
+    string notation = MoveConverter.ToDescriptiveNotation(_selectedPiece, toPosition);
+    MoveData move = new MoveData(_selectedPiece.Type, oldPosition, toPosition, notation);
+    MoveHistory.Instance.AddMove(move);
+
+    DeselectPiece();
+    GameManager.Instance.CheckForGameEnd();
+
+    if (GameManager.Instance.CurrentState == GameState.Playing)
+    {
+        GameManager.Instance.NotifyCurrentPlayer();
+    }
+}
 
     private void AttemptSelection(Vector2Int position)
     {

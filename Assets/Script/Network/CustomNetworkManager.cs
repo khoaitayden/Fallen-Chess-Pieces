@@ -1,67 +1,50 @@
 using UnityEngine;
 using Mirror;
 using System.Linq;
+using System.Collections;
 
 public class CustomNetworkManager : NetworkManager
 {
     public string RoomName { get; set; }
     public string RoomPassword { get; set; }
 
-
-    public override void OnStartServer()
+    public override void Awake()
     {
-        base.OnStartServer();
-        NetworkServer.RegisterHandler<AuthRequestMessage>(OnAuthRequest, false);
-    }
-
-    public override void OnServerConnect(NetworkConnectionToClient conn)
-    {
-        if (conn == NetworkServer.localConnection)
+        base.Awake();
+        if (singleton != null && singleton != this)
         {
-            conn.isAuthenticated = true;
-            OnServerReady(conn);
+            Destroy(gameObject);
+            return;
         }
-    }
-
-    private void OnAuthRequest(NetworkConnectionToClient conn, AuthRequestMessage msg)
-    {
-        if (conn.isAuthenticated) return;
-
-        if (string.IsNullOrEmpty(RoomPassword) || msg.password == RoomPassword)
-        {
-            conn.isAuthenticated = true;
-        }
-        else
-        {
-            conn.Send(new DisconnectMessage { reason = "Incorrect password." });
-            conn.Disconnect();
-        }
-    }
-
-    public override void OnServerReady(NetworkConnectionToClient conn)
-    {
-        base.OnServerReady(conn);
-
-        if (conn.isAuthenticated)
-        {
-            if (conn.identity == null)
-            {
-                GameObject playerObj = Instantiate(playerPrefab);
-                playerObj.name = $"NetworkPlayer [connId={conn.connectionId}]";
-                NetworkServer.AddPlayerForConnection(conn, playerObj);
-            }
-        }
+        DontDestroyOnLoad(gameObject);
     }
 
     public override void OnServerAddPlayer(NetworkConnectionToClient conn)
     {
+        base.OnServerAddPlayer(conn);
         ServerUpdateLobby();
     }
 
     public override void OnServerDisconnect(NetworkConnectionToClient conn)
     {
         base.OnServerDisconnect(conn);
+
+        StartCoroutine(DelayedLobbyUpdate());
+    }
+
+
+    private IEnumerator DelayedLobbyUpdate()
+    {
+        yield return new WaitForEndOfFrame();
+
+
         ServerUpdateLobby();
+    }
+
+    public override void OnClientDisconnect()
+    {
+        base.OnClientDisconnect();
+        UIManager.Instance.ShowMenuPanel();
     }
 
     public void ServerUpdateLobby()
@@ -69,7 +52,7 @@ public class CustomNetworkManager : NetworkManager
         NetworkPlayer[] players = FindObjectsByType<NetworkPlayer>(FindObjectsSortMode.None);
         foreach (var player in players)
         {
-            bool isHost = player.isServer;
+            bool isHost = player.connectionToClient == NetworkServer.localConnection;
             player.RpcUpdateLobbyUI(players.Length, isHost);
         }
     }
@@ -86,32 +69,27 @@ public class CustomNetworkManager : NetworkManager
             }
         }
     }
-
+    
     public void Shutdown()
     {
-        GetComponent<CustomNetworkDiscovery>()?.StopDiscovery();
-        if (NetworkServer.active && NetworkClient.isConnected) StopHost();
-        else if (NetworkClient.isConnected) StopClient();
-        else if (NetworkServer.active) StopServer();
-    }
+        Debug.Log("Shutdown requested. Stopping all network activity.");
 
+        if (TryGetComponent(out CustomNetworkDiscovery discovery))
+        {
+            discovery.StopDiscovery();
+        }
 
-    public override void OnStartClient()
-    {
-        base.OnStartClient();
-        NetworkClient.RegisterHandler<DisconnectMessage>(OnDisconnectMessage);
-    }
-
-    public override void OnClientConnect()
-    {
-        base.OnClientConnect();
-        
-        NetworkClient.Ready();
-        NetworkClient.Send(new AuthRequestMessage { password = OnlineUI.Instance.GetPasswordForJoin() });
-    }
-
-    private void OnDisconnectMessage(DisconnectMessage msg)
-    {
-        Debug.LogError($"Kicked from server: {msg.reason}");
+        if (NetworkServer.active && NetworkClient.isConnected)
+        {
+            StopHost();
+        }
+        else if (NetworkClient.isConnected)
+        {
+            StopClient();
+        }
+        else if (NetworkServer.active)
+        {
+            StopServer();
+        }
     }
 }

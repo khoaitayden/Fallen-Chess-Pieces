@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Mirror;
-using System.Collections;
 
 public class LobbyUI : MonoBehaviour
 {
@@ -11,9 +10,6 @@ public class LobbyUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI roomCodeText;
     [SerializeField] private Button startGameButton;
     [SerializeField] private Button leaveLobbyButton;
-
-    private string _roomCode;
-    private Coroutine _updateRoomInfoCoroutine;
 
     private void Awake()
     {
@@ -24,16 +20,12 @@ public class LobbyUI : MonoBehaviour
     private void OnEnable()
     {
         startGameButton.gameObject.SetActive(false);
-        if (_updateRoomInfoCoroutine != null) StopCoroutine(_updateRoomInfoCoroutine);
-        _updateRoomInfoCoroutine = StartCoroutine(UpdateRoomInfoRoutine());
-    }
+        statusText.text = "Connecting to lobby...";
+        roomCodeText.text = "";
 
-    private void OnDisable()
-    {
-        if (_updateRoomInfoCoroutine != null)
+        if (NetworkServer.active && NetworkClient.isConnected)
         {
-            StopCoroutine(_updateRoomInfoCoroutine);
-            _updateRoomInfoCoroutine = null;
+            UpdateLobbyUI(1, true);
         }
     }
 
@@ -44,30 +36,17 @@ public class LobbyUI : MonoBehaviour
     {
         startGameButton.gameObject.SetActive(amIHost && playerCount == 2);
         statusText.text = (playerCount < 2) ? "Waiting for opponent..." : "Opponent has joined!";
-    }
 
-    private IEnumerator UpdateRoomInfoRoutine()
-    {
-        if (!NetworkServer.active)
+        if (amIHost)
+        {
+            string ipAddress = NetworkUtils.GetLocalIPv4();
+            string roomName = (NetworkManager.singleton as CustomNetworkManager)?.RoomName ?? "Chess Game";
+            roomCodeText.text = $"IP: {ipAddress} | Room: {roomName}";
+        }
+        else
         {
             roomCodeText.text = "Connected to host";
-            yield break;
         }
-
-        roomCodeText.text = "Generating room info...";
-        string ipAddress = "resolving...";
-
-        while (ipAddress == "resolving..." || ipAddress == "localhost" || ipAddress == "127.0.0.1")
-        {
-            ipAddress = NetworkUtils.GetLocalIPv4();
-            yield return new WaitForSeconds(0.5f);
-        }
-
-        if (string.IsNullOrEmpty(_roomCode))
-        {
-            _roomCode = NetworkUtils.GenerateRoomCode(5);
-        }
-        roomCodeText.text = $"IP: {ipAddress}  |  Code: {_roomCode}";
     }
 
     private void OnStartGameClicked()
@@ -77,10 +56,24 @@ public class LobbyUI : MonoBehaviour
 
     private void OnLeaveLobbyClicked()
     {
-        _roomCode = "";
-        
-        (NetworkManager.singleton as CustomNetworkManager)?.Shutdown();
-        
-        UIManager.Instance.ShowMenuPanel();
+        if (NetworkClient.localPlayer != null)
+        {
+            NetworkPlayer localPlayer = NetworkClient.localPlayer.GetComponent<NetworkPlayer>();
+            if (localPlayer != null)
+            {
+                localPlayer.CmdLeaveLobby();
+            }
+        }
+        else
+        {
+            if (NetworkServer.active && NetworkClient.isConnected)
+            {
+                NetworkManager.singleton.StopHost();
+            }
+            else if (NetworkClient.isConnected)
+            {
+                NetworkManager.singleton.StopClient();
+            }
+        }
     }
 }

@@ -68,6 +68,7 @@ public class LocalPlayerController : MonoBehaviour
 
         DeselectPiece();
         GameManager.Instance.CheckForGameEnd();
+        GameManager.Instance.NotifyCurrentPlayer();
     }
 
     private void AttemptSelection(Vector2Int position)

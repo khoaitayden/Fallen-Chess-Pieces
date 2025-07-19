@@ -14,12 +14,10 @@ public class OnlineUI : MonoBehaviour
     [SerializeField] private GameObject joinRoomPanel;
     [SerializeField] private PasswordPopupUI passwordPopup;
 
-    // --- MISSING VARIABLES ADDED BACK ---
     [Header("Main Panel Buttons")]
     [SerializeField] private Button mainCreateRoomButton;
     [SerializeField] private Button mainJoinRoomButton;
     [SerializeField] private Button mainBackButton;
-    // ------------------------------------
 
     [Header("Create Room Panel")]
     [SerializeField] private TMP_InputField createRoomNameInput;
@@ -38,43 +36,27 @@ public class OnlineUI : MonoBehaviour
     [SerializeField] private GameObject serverListItemPrefab;
 
     private CustomNetworkDiscovery _networkDiscovery;
-    private string _passwordForJoinAttempt = "";
+    private string _passwordForJoinAttempt = ""; 
 
-    private void Awake()
-    {
-        Instance = this;
-    }
+    private void Awake() { Instance = this; }
 
     private void Start()
     {
         _networkDiscovery = NetworkManager.singleton.GetComponent<CustomNetworkDiscovery>();
+        if (_networkDiscovery != null) _networkDiscovery.OnServerFound.AddListener(OnServerFound);
         SetupButtonListeners();
     }
 
-    // Re-added OnEnable/OnDisable to correctly handle discovery events.
-    private void OnEnable()
+    private void OnDestroy()
     {
-        if (_networkDiscovery != null)
-        {
-            _networkDiscovery.OnServerFound.AddListener(OnServerFound);
-        }
-    }
-
-    private void OnDisable()
-    {
-        if (_networkDiscovery != null)
-        {
-            _networkDiscovery.OnServerFound.RemoveListener(OnServerFound);
-        }
+        if (_networkDiscovery != null) _networkDiscovery.OnServerFound.RemoveListener(OnServerFound);
     }
 
     private void SetupButtonListeners()
     {
-        // These calls are now valid because the variables are declared above.
         mainCreateRoomButton.onClick.AddListener(() => ShowPanel(createRoomPanel));
         mainJoinRoomButton.onClick.AddListener(OnJoinRoomMenuClicked);
         mainBackButton.onClick.AddListener(OnBackButtonClicked);
-
         hostButton.onClick.AddListener(OnHostButtonClicked);
         cancelCreateButton.onClick.AddListener(() => ShowPanel(mainOnlinePanel));
         joinByAddressButton.onClick.AddListener(OnJoinByAddressClicked);
@@ -91,10 +73,7 @@ public class OnlineUI : MonoBehaviour
         cnm.RoomName = createRoomNameInput.text;
         cnm.RoomPassword = createPasswordInput.text;
         NetworkManager.singleton.StartHost();
-        if (hostLocalToggle.isOn)
-        {
-            _networkDiscovery?.AdvertiseServer();
-        }
+        if (hostLocalToggle.isOn) _networkDiscovery?.AdvertiseServer();
         UIManager.Instance.ShowLobbyPanel();
     }
 
@@ -139,7 +118,7 @@ public class OnlineUI : MonoBehaviour
         }
     }
 
-    private void AttemptToJoinServer(string address, string password)
+ private void AttemptToJoinServer(string address, string password)
     {
         _passwordForJoinAttempt = password;
         NetworkManager.singleton.networkAddress = address;
@@ -177,10 +156,7 @@ public class OnlineUI : MonoBehaviour
         ShowPanel(mainOnlinePanel);
     }
 
-    public void Hide()
-    {
-        gameObject.SetActive(false);
-    }
+    public void Hide() { gameObject.SetActive(false); }
 
     public string GetPasswordForJoin()
     {

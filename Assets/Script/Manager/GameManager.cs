@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
@@ -9,7 +10,7 @@ public class GameManager : MonoBehaviour
 
     private Player whitePlayer;
     private Player blackPlayer;
-    private LocalPlayerController _localController; // NEW: For local mode
+    private LocalPlayerController _localController; // Reference to our local controller
 
     public event System.Action<GameState> OnGameStateChanged;
     private ChessPiece _pawnToPromote;
@@ -18,20 +19,21 @@ public class GameManager : MonoBehaviour
     {
         Instance = this;
         _localController = GetComponentInChildren<LocalPlayerController>(true);
+        _localController.gameObject.SetActive(false);
     }
 
-    private void Start() { } // Waits for UI command
+    private void Start() { }
 
     public void StartLocalGame()
     {
         Debug.Log("Starting new Local (Player vs Player) game.");
         CurrentGameMode = GameMode.Local;
-        whitePlayer = null; // Not used in local mode
+        whitePlayer = null;
         blackPlayer = null;
         
         SetupNewGameBoard();
         
-        _localController.gameObject.SetActive(true); // Activate the local controller
+        _localController.gameObject.SetActive(true); 
         BoardPresenter.Instance.OrientBoardToPlayer(true);
     }
 
@@ -39,7 +41,7 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log($"Starting new AI game with difficulty: {difficulty}");
         CurrentGameMode = GameMode.AI;
-        _localController.gameObject.SetActive(false); // Deactivate local controller
+        _localController.gameObject.SetActive(false);
 
         IAIStrategy strategy;
         switch (difficulty)
@@ -58,13 +60,12 @@ public class GameManager : MonoBehaviour
 
     public void StartOnlineGame(bool iAmWhite, NetworkMoveRelay localPlayerRelay)
     {
-        // Use a coroutine to wait until all singletons are initialized.
+        _localController.gameObject.SetActive(false);
         StartCoroutine(StartOnlineGameRoutine(iAmWhite, localPlayerRelay));
     }
 
     private IEnumerator StartOnlineGameRoutine(bool iAmWhite, NetworkMoveRelay localPlayerRelay)
     {
-        // Wait until all necessary singletons are no longer null.
         yield return new WaitUntil(() => MoveHistory.Instance != null && GameplayUI.Instance != null && PieceCaptureManager.Instance != null);
 
         Debug.Log($"Starting new Online game. I am {(iAmWhite ? "White" : "Black")}.");
@@ -108,7 +109,7 @@ public class GameManager : MonoBehaviour
     public void NotifyCurrentPlayer()
     {
         if (CurrentState != GameState.Playing) return;
-        if (CurrentGameMode == GameMode.Local) return; // Local mode is handled by its own controller
+        if (CurrentGameMode == GameMode.Local) return; 
 
         Player currentPlayer = TurnManager.Instance.IsWhiteTurn ? whitePlayer : blackPlayer;
         currentPlayer.OnTurnStart();
