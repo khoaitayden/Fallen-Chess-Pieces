@@ -5,7 +5,6 @@ using System.Linq;
 public class MoveValidator : MonoBehaviour
 {
     public static MoveValidator Instance { get; private set; }
-    private Dictionary<PieceType, PieceLogic> _logicCache = new Dictionary<PieceType, PieceLogic>();
 
     private void Awake()
     {
@@ -30,26 +29,20 @@ public class MoveValidator : MonoBehaviour
         return logic;
     }
 
-
     public List<Vector2Int> GetValidMoves(ChessPiece piece) => GetValidMoves(piece._boardPosition, Chessboard.Instance.CreateBoardState());
     public bool IsInCheck(bool isWhitePlayer) => IsInCheck(isWhitePlayer, Chessboard.Instance.CreateBoardState());
     public bool IsCheckmate(bool isWhitePlayer) => IsCheckmate(isWhitePlayer, Chessboard.Instance.CreateBoardState());
     public bool IsStalemate(bool isWhitePlayer) => IsStalemate(isWhitePlayer, Chessboard.Instance.CreateBoardState());
     public bool HasInsufficientMaterial() => HasInsufficientMaterial(Chessboard.Instance.CreateBoardState());
 
-
-
     public List<Vector2Int> GetValidMoves(Vector2Int piecePosition, BoardState boardState)
     {
         var validMoves = new List<Vector2Int>();
         var pieceData = boardState.Pieces[piecePosition.x, piecePosition.y];
         if (pieceData == null) return validMoves;
-
         PieceLogic pieceLogic = GetPieceLogic(pieceData.Value, piecePosition);
         if (pieceLogic == null) return validMoves;
-
         var possibleMoves = pieceLogic.GetPossibleMoves(boardState);
-
         foreach (var move in possibleMoves)
         {
             BoardState newState = new BoardState(boardState);
@@ -87,14 +80,12 @@ public class MoveValidator : MonoBehaviour
         for (int x = 0; x < Constants.BOARD_SIZE; x++)
             for (int y = 0; y < Constants.BOARD_SIZE; y++)
                 if (boardState.Pieces[x, y] != null) pieces.Add(boardState.Pieces[x, y]);
-
-        if (pieces.Count <= 2) return true; // King vs King
-        if (pieces.Count == 3 && (pieces.Any(p => p.Value.Type == PieceType.Knight) || pieces.Any(p => p.Value.Type == PieceType.Bishop))) return true; // King vs King & Minor Piece
-        
+        if (pieces.Count <= 2) return true;
+        if (pieces.Count == 3 && (pieces.Any(p => p.Value.Type == PieceType.Knight) || pieces.Any(p => p.Value.Type == PieceType.Bishop))) return true;
         return false;
     }
 
-    private bool IsSquareAttacked(Vector2Int square, bool byWhitePlayer, BoardState boardState)
+    public bool IsSquareAttacked(Vector2Int square, bool byWhitePlayer, BoardState boardState)
     {
         for (int x = 0; x < Constants.BOARD_SIZE; x++)
         {
@@ -140,6 +131,11 @@ public class MoveValidator : MonoBehaviour
 
     private void SimulateMoveOnState(BoardState state, MoveData move)
     {
+        if (move.From.x < 0 || move.From.x >= 8 || move.From.y < 0 || move.From.y >= 8 ||
+            move.To.x < 0 || move.To.x >= 8 || move.To.y < 0 || move.To.y >= 8)
+        {
+            return;
+        }
         var pieceData = state.Pieces[move.From.x, move.From.y];
         if (pieceData.HasValue)
         {

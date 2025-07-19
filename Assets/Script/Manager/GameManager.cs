@@ -77,6 +77,7 @@ public class GameManager : MonoBehaviour
         Debug.Log($"New game started in {CurrentGameMode} mode (Difficulty: {difficulty}). It's White's turn.");
         
         BoardPresenter.Instance.OrientBoardToPlayer(true);
+        KingPowerManager.Instance.ResetState();
         NotifyCurrentPlayer();
     }
 
