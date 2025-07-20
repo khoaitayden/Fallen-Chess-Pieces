@@ -13,7 +13,7 @@ public class GameplayUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI whiteTimerText;
     [SerializeField] private TextMeshProUGUI blackTimerText;
 
-    [Header("Last Move Display")] 
+    [Header("Last Move Display")]
     [SerializeField] private TextMeshProUGUI moveNumberText;
     [SerializeField] private TextMeshProUGUI whiteLastMoveText;
     [SerializeField] private TextMeshProUGUI blackLastMoveText;
@@ -23,45 +23,48 @@ public class GameplayUI : MonoBehaviour
     [SerializeField] private Transform whiteCapturedPiecesContainer;
     [SerializeField] private Transform blackCapturedPiecesContainer;
 
+    [Header("King Power UI")]
+    [SerializeField] private GameObject kingPowerIconPrefab;
+    [SerializeField] private Transform whiteKingPowersContainer;
+    [SerializeField] private Transform blackKingPowersContainer;
+    [SerializeField] private TextMeshProUGUI whiteKingLivesText;
+    [SerializeField] private TextMeshProUGUI blackKingLivesText;
+
     private int moveCount = 0;
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-        }
-        else
-        {
-            Instance = this;
-        }
+        if (Instance != null && Instance != this) { Destroy(gameObject); }
+        else { Instance = this; }
     }
 
     private void Start()
     {
         if (PieceCaptureManager.Instance != null)
-        {
             PieceCaptureManager.Instance.OnPieceCaptured += HandlePieceCaptured;
-        }
-
         if (MoveHistory.Instance != null)
-        {
             MoveHistory.Instance.OnMoveAdded += UpdateLastMoveDisplay;
+        if (KingPowerManager.Instance != null)
+        {
+            KingPowerManager.Instance.OnPowerGained += HandlePowerGained;
+            KingPowerManager.Instance.OnPowerLost += HandlePowerLost;
+            KingPowerManager.Instance.OnExtraLifeGained += HandleExtraLifeGained;
         }
-
         ClearLastMoveDisplay();
+        ClearKingPowerUI();
     }
 
     private void OnDestroy()
     {
         if (PieceCaptureManager.Instance != null)
-        {
             PieceCaptureManager.Instance.OnPieceCaptured -= HandlePieceCaptured;
-        }
-
         if (MoveHistory.Instance != null)
-        {
             MoveHistory.Instance.OnMoveAdded -= UpdateLastMoveDisplay;
+        if (KingPowerManager.Instance != null)
+        {
+            KingPowerManager.Instance.OnPowerGained -= HandlePowerGained;
+            KingPowerManager.Instance.OnPowerLost -= HandlePowerLost;
+            KingPowerManager.Instance.OnExtraLifeGained -= HandleExtraLifeGained;
         }
     }
 
@@ -75,20 +78,15 @@ public class GameplayUI : MonoBehaviour
     private void UpdateTurnIndicator()
     {
         if (TurnManager.Instance == null) return;
-
         if (TurnManager.Instance.IsWhiteTurn)
         {
             turnIndicatorText.text = "White's Turn";
             turnIndicatorText.color = Color.white;
-            turnIndicatorText.outlineColor = Color.black;
-            turnIndicatorText.outlineWidth = 0.1f;
         }
         else
         {
             turnIndicatorText.text = "Black's Turn";
             turnIndicatorText.color = Color.black;
-            turnIndicatorText.outlineColor = Color.white;
-            turnIndicatorText.outlineWidth = 0.1f;
         }
     }
 
@@ -116,13 +114,8 @@ public class GameplayUI : MonoBehaviour
     private void HandlePieceCaptured(ChessPiece piece)
     {
         Transform container = piece.IsWhite ? blackCapturedPiecesContainer : whiteCapturedPiecesContainer;
-
         GameObject iconObject = Instantiate(capturedPieceUIPrefab, container);
-
-        SpriteRenderer pieceSpriteRenderer = piece.GetComponent<SpriteRenderer>();
-        Image iconImage = iconObject.GetComponent<Image>();
-
-        if (pieceSpriteRenderer != null && iconImage != null)
+        if (iconObject.TryGetComponent(out Image iconImage) && piece.TryGetComponent(out SpriteRenderer pieceSpriteRenderer))
         {
             iconImage.sprite = pieceSpriteRenderer.sprite;
         }
@@ -130,24 +123,52 @@ public class GameplayUI : MonoBehaviour
 
     public void ClearCapturedPieceUI()
     {
-        foreach (Transform child in whiteCapturedPiecesContainer)
+        foreach (Transform child in whiteCapturedPiecesContainer) Destroy(child.gameObject);
+        foreach (Transform child in blackCapturedPiecesContainer) Destroy(child.gameObject);
+    }
+
+    private void HandlePowerGained(bool isWhiteKing, PieceType powerType)
+    {
+        Transform container = isWhiteKing ? whiteKingPowersContainer : blackKingPowersContainer;
+        GameObject iconObject = Instantiate(kingPowerIconPrefab, container);
+        iconObject.name = $"{powerType}_PowerIcon";
+        Sprite pieceSprite = ChessPieceManager.Instance.GetSpriteForPiece(powerType, isWhiteKing);
+        if (iconObject.TryGetComponent(out Image iconImage) && pieceSprite != null)
         {
-            Destroy(child.gameObject);
+            iconImage.sprite = pieceSprite;
         }
-        foreach (Transform child in blackCapturedPiecesContainer)
+    }
+
+    private void HandlePowerLost(bool isWhiteKing, PieceType powerType)
+    {
+        Transform container = isWhiteKing ? whiteKingPowersContainer : blackKingPowersContainer;
+        Transform iconToDestroy = container.Find($"{powerType}_PowerIcon");
+        if (iconToDestroy != null)
         {
-            Destroy(child.gameObject);
+            Destroy(iconToDestroy.gameObject);
         }
+    }
+
+    private void HandleExtraLifeGained(bool isWhiteKing)
+    {
+        if (isWhiteKing) whiteKingLivesText.text = "Extra Lives: 1";
+        else blackKingLivesText.text = "Extra Lives: 1";
+    }
+
+    public void ClearKingPowerUI()
+    {
+        foreach (Transform child in whiteKingPowersContainer) Destroy(child.gameObject);
+        foreach (Transform child in blackKingPowersContainer) Destroy(child.gameObject);
+        whiteKingLivesText.text = "Extra Lives: 0";
+        blackKingLivesText.text = "Extra Lives: 0";
     }
 
     private void UpdateLastMoveDisplay(MoveData move)
     {
         bool isWhiteMove = (moveCount % 2 == 0);
-
         if (isWhiteMove)
         {
-            int currentMoveNumber = (moveCount / 2) + 1;
-            moveNumberText.text = $"Move: {currentMoveNumber}";
+            moveNumberText.text = $"Move: {moveCount / 2 + 1}";
             whiteLastMoveText.text = move.Notation;
             blackLastMoveText.text = "...";
         }
@@ -155,7 +176,6 @@ public class GameplayUI : MonoBehaviour
         {
             blackLastMoveText.text = move.Notation;
         }
-
         moveCount++;
     }
 
@@ -167,13 +187,6 @@ public class GameplayUI : MonoBehaviour
         moveCount = 0;
     }
 
-    public void ShowPanel()
-    {
-        gameObject.SetActive(true);
-    }
-
-    public void HidePanel()
-    {
-        gameObject.SetActive(false);
-    }
+    public void ShowPanel() => gameObject.SetActive(true);
+    public void HidePanel() => gameObject.SetActive(false);
 }

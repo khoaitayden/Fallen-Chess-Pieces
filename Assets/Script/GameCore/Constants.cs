@@ -2,7 +2,7 @@ using System.Collections.Generic;
 public static class Constants
 {
     public const int BOARD_SIZE = 8;
-    public const float PIECE_MOVE_SPEED = 10f;
+    public const float PIECE_MOVE_SPEED = 15f;
     public const float DEFAULT_GAME_TIME = 600f;
 }
 
