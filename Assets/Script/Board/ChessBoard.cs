@@ -192,21 +192,29 @@ public class Chessboard : MonoBehaviour
 
     private void HandleCastle(ChessPiece king, Vector2Int oldKingPos, Vector2Int newKingPos)
     {
+        // --- THIS IS THE ROBUST FIX ---
+        // Determine the correct rank (row) based on the king's color.
+        int rank = king.IsWhite ? 0 : 7;
+
+        // Move the king first.
         _pieces[oldKingPos.x, oldKingPos.y] = null;
         _pieces[newKingPos.x, newKingPos.y] = king;
         king.MoveTo(newKingPos, GetLocalPosition(newKingPos));
 
         Vector2Int rookOldPos, rookNewPos;
-        if (newKingPos.x > oldKingPos.x)
+        if (newKingPos.x > oldKingPos.x) // Kingside
         {
-            rookOldPos = new Vector2Int(7, oldKingPos.y);
-            rookNewPos = new Vector2Int(newKingPos.x - 1, oldKingPos.y);
+            // The rook is always on file 7 of the correct rank.
+            rookOldPos = new Vector2Int(7, rank);
+            rookNewPos = new Vector2Int(newKingPos.x - 1, rank);
         }
-        else
+        else // Queenside
         {
-            rookOldPos = new Vector2Int(0, oldKingPos.y);
-            rookNewPos = new Vector2Int(newKingPos.x + 1, oldKingPos.y);
+            // The rook is always on file 0 of the correct rank.
+            rookOldPos = new Vector2Int(0, rank);
+            rookNewPos = new Vector2Int(newKingPos.x + 1, rank);
         }
+        // ---------------------------------
 
         ChessPiece rook = GetPieceAt(rookOldPos);
         if (rook != null)

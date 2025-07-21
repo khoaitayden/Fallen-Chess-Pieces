@@ -16,7 +16,7 @@ public abstract class PieceLogic
         this.HasMoved = hasMoved;
         this.Type = type;
     }
-
+    
     public abstract List<Vector2Int> GetPossibleMoves(BoardState boardState);
     public abstract List<Vector2Int> GetAttackMoves(BoardState boardState);
 

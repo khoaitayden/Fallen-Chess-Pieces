@@ -24,8 +24,13 @@ public class TurnManager : MonoBehaviour
     public void StartNewGame()
     {
         IsWhiteTurn = true;
-        WhiteTime = Constants.DEFAULT_GAME_TIME;
-        BlackTime = Constants.DEFAULT_GAME_TIME;
+        
+        // --- THIS IS THE FIX ---
+        // Instead of a constant, get the game time from the current game's settings.
+        WhiteTime = GameManager.Instance.CurrentSettings.GameTime;
+        BlackTime = GameManager.Instance.CurrentSettings.GameTime;
+        // -----------------------
+
         isTimerActive = true;
         EnPassantTargetSquare = new Vector2Int(-1, -1);
     }
@@ -67,6 +72,23 @@ public class TurnManager : MonoBehaviour
     }
     public void SwitchTurn()
     {
+        // --- NEW: TIME INCREMENT LOGIC ---
+        // Get the time increment value from the settings.
+        float increment = GameManager.Instance.CurrentSettings.TimeIncrement;
+        if (increment > 0)
+        {
+            // Add the increment to the player who just finished their turn.
+            if (IsWhiteTurn)
+            {
+                WhiteTime += increment;
+            }
+            else
+            {
+                BlackTime += increment;
+            }
+        }
+        // ---------------------------------
+
         IsWhiteTurn = !IsWhiteTurn;
         if (GameManager.Instance.CurrentGameMode == GameMode.Local)
         {

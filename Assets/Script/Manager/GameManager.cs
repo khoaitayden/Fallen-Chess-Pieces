@@ -3,7 +3,7 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
-
+    public GameSettings CurrentSettings { get; private set; }
     public GameMode CurrentGameMode { get; private set; }
     public GameState CurrentState { get; private set; }
 
@@ -15,13 +15,12 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-        }
+        if (Instance != null && Instance != this) { Destroy(gameObject); }
         else
         {
             Instance = this;
+            // Create a new instance of our settings with default values.
+            CurrentSettings = new GameSettings();
         }
     }
     public void StartNewGame(GameMode mode, AIDifficulty difficulty = AIDifficulty.Easy)
@@ -66,16 +65,16 @@ public class GameManager : MonoBehaviour
             GameplayUI.Instance.ClearCapturedPieceUI();
         }
         PieceCaptureManager.Instance.ClearCapturedLists();
-        
+
         Chessboard.Instance.GenerateBoard();
         ChessPieceManager.Instance.SpawnAllPieces();
         TurnManager.Instance.StartNewGame();
 
         UIManager.Instance.ShowGameplayPanel();
         ChangeState(GameState.Playing);
-        
+
         Debug.Log($"New game started in {CurrentGameMode} mode (Difficulty: {difficulty}). It's White's turn.");
-        
+
         BoardPresenter.Instance.OrientBoardToPlayer(true);
         KingPowerManager.Instance.ResetState();
         NotifyCurrentPlayer();
@@ -125,7 +124,7 @@ public class GameManager : MonoBehaviour
     public void InitiatePawnPromotion(ChessPiece pawn)
     {
         _pawnToPromote = pawn;
-        ChangeState(GameState.Promotion); 
+        ChangeState(GameState.Promotion);
 
         Player currentPlayer = GetCurrentPlayer();
 
@@ -178,5 +177,17 @@ public class GameManager : MonoBehaviour
     public Player GetBlackPlayer()
     {
         return blackPlayer;
+    }
+    
+    public void SetGameTime(float timeInSeconds)
+    {
+        CurrentSettings.GameTime = timeInSeconds;
+        Debug.Log($"Game time set to {timeInSeconds} seconds.");
+    }
+
+    public void SetCapturesForExtraLife(int captureCount)
+    {
+        CurrentSettings.CapturesForExtraLife = captureCount;
+        Debug.Log($"Captures needed for extra life set to {captureCount}.");
     }
 }

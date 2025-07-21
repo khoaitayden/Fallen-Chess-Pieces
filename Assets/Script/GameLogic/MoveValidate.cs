@@ -131,22 +131,73 @@ public class MoveValidator : MonoBehaviour
 
     private void SimulateMoveOnState(BoardState state, MoveData move)
     {
-        if (move.From.x < 0 || move.From.x >= 8 || move.From.y < 0 || move.From.y >= 8 ||
-            move.To.x < 0 || move.To.x >= 8 || move.To.y < 0 || move.To.y >= 8)
-        {
-            return;
-        }
+        // Basic validation to prevent errors.
+        if (move.From.x < 0 || move.From.x >= 8 || move.To.x < 0 || move.To.x >= 8) return;
+        
         var pieceData = state.Pieces[move.From.x, move.From.y];
-        if (pieceData.HasValue)
+        if (!pieceData.HasValue) return;
+
+        var movedPiece = pieceData.Value;
+        movedPiece.HasMoved = true;
+
+        // --- SPECIAL MOVE HANDLING ---
+
+        // 1. Castling
+        if (movedPiece.Type == PieceType.King && Mathf.Abs(move.To.x - move.From.x) == 2)
         {
-            var movedPiece = pieceData.Value;
-            movedPiece.HasMoved = true;
+            // Move the King
             state.Pieces[move.To.x, move.To.y] = movedPiece;
             state.Pieces[move.From.x, move.From.y] = null;
-            if (movedPiece.Type == PieceType.Pawn && Mathf.Abs(move.To.y - move.From.y) == 2)
-                state.EnPassantTargetSquare = new Vector2Int(move.To.x, move.To.y + (movedPiece.IsWhite ? -1 : 1));
-            else
-                state.EnPassantTargetSquare = new Vector2Int(-1, -1);
+
+            // Now, find and move the corresponding Rook.
+            Vector2Int rookFromPos, rookToPos;
+            if (move.To.x > move.From.x) // Kingside
+            {
+                rookFromPos = new Vector2Int(7, move.From.y);
+                rookToPos = new Vector2Int(move.To.x - 1, move.From.y);
+            }
+            else // Queenside
+            {
+                rookFromPos = new Vector2Int(0, move.From.y);
+                rookToPos = new Vector2Int(move.To.x + 1, move.From.y);
+            }
+
+            var rookData = state.Pieces[rookFromPos.x, rookFromPos.y];
+            if (rookData.HasValue)
+            {
+                var movedRook = rookData.Value;
+                movedRook.HasMoved = true; // Set the Rook's HasMoved flag!
+                state.Pieces[rookToPos.x, rookToPos.y] = movedRook;
+                state.Pieces[rookFromPos.x, rookFromPos.y] = null;
+            }
+        }
+        // 2. En Passant (You may need to add this if you haven't already)
+        else if (movedPiece.Type == PieceType.Pawn && move.To == state.EnPassantTargetSquare)
+        {
+            // Move the capturing pawn
+            state.Pieces[move.To.x, move.To.y] = movedPiece;
+            state.Pieces[move.From.x, move.From.y] = null;
+            
+            // Remove the captured pawn
+            int captureDirection = movedPiece.IsWhite ? -1 : 1;
+            Vector2Int capturedPawnPos = new Vector2Int(move.To.x, move.To.y + captureDirection);
+            state.Pieces[capturedPawnPos.x, capturedPawnPos.y] = null;
+        }
+        // 3. Normal Move
+        else
+        {
+            state.Pieces[move.To.x, move.To.y] = movedPiece;
+            state.Pieces[move.From.x, move.From.y] = null;
+        }
+
+        // --- Update En Passant Target for the NEXT turn ---
+        if (movedPiece.Type == PieceType.Pawn && Mathf.Abs(move.To.y - move.From.y) == 2)
+        {
+            state.EnPassantTargetSquare = new Vector2Int(move.To.x, move.To.y + (movedPiece.IsWhite ? -1 : 1));
+        }
+        else
+        {
+            state.EnPassantTargetSquare = new Vector2Int(-1, -1);
         }
     }
 }
