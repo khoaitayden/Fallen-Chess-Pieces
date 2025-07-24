@@ -2,10 +2,12 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
 
-public abstract class ChessPiece : MonoBehaviour, IClickable
+public class ChessPiece : MonoBehaviour, IClickable
 {
+    [Header("Piece Configuration")]
+    [Tooltip("Set the type of this piece in the Inspector.")]
     [SerializeField] private PieceType _pieceType;
-    [SerializeField] protected bool _isWhite;
+    [SerializeField] private bool _isWhite;
 
     public PieceType Type => _pieceType;
     public bool IsWhite => _isWhite;
@@ -13,21 +15,35 @@ public abstract class ChessPiece : MonoBehaviour, IClickable
     [HideInInspector] public Vector2Int _boardPosition;
     public bool _hasMoved = false;
 
-    protected PieceLogic _logic;
+    // The "brain" for this piece.
+    private PieceLogic _logic;
 
-    public virtual void Initialize(bool isWhite, Vector2Int startPosition)
+    public void Initialize(bool isWhite, Vector2Int startPosition)
     {
         this._isWhite = isWhite;
         _boardPosition = startPosition;
         _hasMoved = false;
         
+        // Create the correct brain based on our type.
         CreateLogic();
     }
 
-    protected abstract void CreateLogic();
+    // This "Factory" method creates the correct logic instance.
+    private void CreateLogic()
+    {
+        switch (_pieceType)
+        {
+            case PieceType.Pawn:   _logic = new PawnLogic();   break;
+            case PieceType.Rook:   _logic = new RookLogic();   break;
+            case PieceType.Knight: _logic = new KnightLogic(); break;
+            case PieceType.Bishop: _logic = new BishopLogic(); break;
+            case PieceType.Queen:  _logic = new QueenLogic();  break;
+            case PieceType.King:   _logic = new KingLogic();   break;
+        }
+    }
 
-
-
+    // These methods act as a bridge to the piece's "brain".
+    // They ensure the logic is always updated with the piece's current state.
     public List<Vector2Int> GetPossibleMoves(BoardState boardState)
     {
         _logic.Initialize(this.IsWhite, this._boardPosition, this._hasMoved, this.Type);
@@ -40,20 +56,11 @@ public abstract class ChessPiece : MonoBehaviour, IClickable
         return _logic.GetAttackMoves(boardState);
     }
 
+    // --- The rest of the MonoBehaviour logic is unchanged ---
 
-
-    private void LateUpdate() 
-    {
-        transform.rotation = Quaternion.identity; 
-    }
-
-    public void SelectPiece() 
-    { 
-        Debug.Log($"{_pieceType} at {_boardPosition} selected."); 
-    }
-
+    private void LateUpdate() { transform.rotation = Quaternion.identity; }
+    public void SelectPiece() { Debug.Log($"{_pieceType} at {_boardPosition} selected."); }
     public void DeselectPiece() { }
-
     public Vector2Int GetBoardPosition() => _boardPosition;
 
     public void MoveTo(Vector2Int newPosition, Vector3 targetLocalPosition)

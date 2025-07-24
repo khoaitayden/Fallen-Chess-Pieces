@@ -1,1 +1,0 @@
-public class RookPiece : ChessPiece { protected override void CreateLogic() { _logic = new RookLogic(); } }

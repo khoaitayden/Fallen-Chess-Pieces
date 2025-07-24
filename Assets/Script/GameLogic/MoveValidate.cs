@@ -17,13 +17,24 @@ public class MoveValidator : MonoBehaviour
         PieceLogic logic;
         switch (pieceData.Type)
         {
+            // --- Standard Pieces ---
             case PieceType.Pawn:   logic = new PawnLogic();   break;
             case PieceType.Rook:   logic = new RookLogic();   break;
             case PieceType.Knight: logic = new KnightLogic(); break;
             case PieceType.Bishop: logic = new BishopLogic(); break;
             case PieceType.Queen:  logic = new QueenLogic();  break;
             case PieceType.King:   logic = new KingLogic();   break;
-            default: return null;
+
+            // --- NEW: Combination Pieces ---
+            case PieceType.KnightRook:         logic = new KnightRookLogic();         break;
+            case PieceType.KnightBishop:       logic = new KnightBishopLogic();       break;
+            case PieceType.RookBishop:         logic = new RookBishopLogic();         break;
+            case PieceType.KnightBishopRook:   logic = new KnightBishopRookLogic();   break;
+            
+            // -----------------------------
+            default: 
+                Debug.LogError($"No PieceLogic found for PieceType: {pieceData.Type}");
+                return null;
         }
         logic.Initialize(pieceData.IsWhite, position, pieceData.HasMoved, pieceData.Type);
         return logic;

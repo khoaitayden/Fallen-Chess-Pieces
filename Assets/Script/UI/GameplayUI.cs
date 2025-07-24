@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-
+using System.Collections.Generic;
 public class GameplayUI : MonoBehaviour
 {
     public static GameplayUI Instance { get; private set; }
@@ -24,9 +24,6 @@ public class GameplayUI : MonoBehaviour
     [SerializeField] private Transform blackCapturedPiecesContainer;
 
     [Header("King Power UI")]
-    [SerializeField] private GameObject kingPowerIconPrefab;
-    [SerializeField] private Transform whiteKingPowersContainer;
-    [SerializeField] private Transform blackKingPowersContainer;
     [SerializeField] private TextMeshProUGUI whiteKingLivesText;
     [SerializeField] private TextMeshProUGUI blackKingLivesText;
 
@@ -44,12 +41,16 @@ public class GameplayUI : MonoBehaviour
             PieceCaptureManager.Instance.OnPieceCaptured += HandlePieceCaptured;
         if (MoveHistory.Instance != null)
             MoveHistory.Instance.OnMoveAdded += UpdateLastMoveDisplay;
+        
+        // --- REMOVE POWER SUBSCRIPTIONS ---
         if (KingPowerManager.Instance != null)
         {
-            KingPowerManager.Instance.OnPowerGained += HandlePowerGained;
-            KingPowerManager.Instance.OnPowerLost += HandlePowerLost;
+            // KingPowerManager.Instance.OnPowerGained -= HandlePowerGained; // REMOVE
+            // KingPowerManager.Instance.OnPowerLost -= HandlePowerLost;     // REMOVE
             KingPowerManager.Instance.OnExtraLifeGained += HandleExtraLifeGained;
         }
+        // ----------------------------------
+        
         ClearLastMoveDisplay();
         ClearKingPowerUI();
     }
@@ -62,8 +63,6 @@ public class GameplayUI : MonoBehaviour
             MoveHistory.Instance.OnMoveAdded -= UpdateLastMoveDisplay;
         if (KingPowerManager.Instance != null)
         {
-            KingPowerManager.Instance.OnPowerGained -= HandlePowerGained;
-            KingPowerManager.Instance.OnPowerLost -= HandlePowerLost;
             KingPowerManager.Instance.OnExtraLifeGained -= HandleExtraLifeGained;
         }
     }
@@ -111,7 +110,7 @@ public class GameplayUI : MonoBehaviour
         return string.Format("{0:00}:{1:00}", minutes, seconds);
     }
 
-    private void HandlePieceCaptured(ChessPiece piece)
+    private void HandlePieceCaptured(ChessPiece piece, List<ChessPiece> capturedList)
     {
         Transform container = piece.IsWhite ? blackCapturedPiecesContainer : whiteCapturedPiecesContainer;
         GameObject iconObject = Instantiate(capturedPieceUIPrefab, container);
@@ -127,38 +126,16 @@ public class GameplayUI : MonoBehaviour
         foreach (Transform child in blackCapturedPiecesContainer) Destroy(child.gameObject);
     }
 
-    private void HandlePowerGained(bool isWhiteKing, PieceType powerType)
-    {
-        Transform container = isWhiteKing ? whiteKingPowersContainer : blackKingPowersContainer;
-        GameObject iconObject = Instantiate(kingPowerIconPrefab, container);
-        iconObject.name = $"{powerType}_PowerIcon";
-        Sprite pieceSprite = ChessPieceManager.Instance.GetSpriteForPiece(powerType, isWhiteKing);
-        if (iconObject.TryGetComponent(out Image iconImage) && pieceSprite != null)
-        {
-            iconImage.sprite = pieceSprite;
-        }
-    }
-
-    private void HandlePowerLost(bool isWhiteKing, PieceType powerType)
-    {
-        Transform container = isWhiteKing ? whiteKingPowersContainer : blackKingPowersContainer;
-        Transform iconToDestroy = container.Find($"{powerType}_PowerIcon");
-        if (iconToDestroy != null)
-        {
-            Destroy(iconToDestroy.gameObject);
-        }
-    }
-
     private void HandleExtraLifeGained(bool isWhiteKing)
     {
+        // This is still needed for the new rules.
         if (isWhiteKing) whiteKingLivesText.text = "Extra Lives: 1";
         else blackKingLivesText.text = "Extra Lives: 1";
     }
 
     public void ClearKingPowerUI()
     {
-        foreach (Transform child in whiteKingPowersContainer) Destroy(child.gameObject);
-        foreach (Transform child in blackKingPowersContainer) Destroy(child.gameObject);
+        // We no longer need to clear icon containers.
         whiteKingLivesText.text = "Extra Lives: 0";
         blackKingLivesText.text = "Extra Lives: 0";
     }

@@ -37,7 +37,7 @@ public class TurnManager : MonoBehaviour
 
     void Update()
     {
-        if (!isTimerActive) return;
+        if (!isTimerActive || GameManager.Instance.CurrentState == GameState.PowerTransfer) return;
 
         if (IsWhiteTurn)
         {

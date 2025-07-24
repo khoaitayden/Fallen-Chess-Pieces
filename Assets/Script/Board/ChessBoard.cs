@@ -84,24 +84,50 @@ public class Chessboard : MonoBehaviour
         return _boardSquares[position.x, position.y];
     }
 
-    public void MovePiece(ChessPiece piece, Vector2Int newPosition)
+    public ChessPiece MovePiece(ChessPiece piece, Vector2Int newPosition)
     {
-        if (piece.Type == PieceType.Pawn)
-        {
-            bool isWhitePromotion = piece.IsWhite && newPosition.y == 7;
-            bool isBlackPromotion = !piece.IsWhite && newPosition.y == 0;
-
-            if (isWhitePromotion || isBlackPromotion)
-            {
-                StandardMove(piece, newPosition);
-                GameManager.Instance.InitiatePawnPromotion(piece);
-                return;
-            }
-        }
-
-        StandardMove(piece, newPosition);
+        return StandardMove(piece, newPosition);
     }
 
+    private ChessPiece StandardMove(ChessPiece piece, Vector2Int newPosition)
+    {
+        Vector2Int oldPosition = piece._boardPosition;
+        ChessPiece capturedPiece = null; // Start with no captured piece.
+
+        if (piece.Type == PieceType.King && Mathf.Abs(newPosition.x - oldPosition.x) == 2)
+        {
+            HandleCastle(piece, oldPosition, newPosition);
+            return null; // Castling is not a capture.
+        }
+        if (piece.Type == PieceType.Pawn && newPosition == TurnManager.Instance.EnPassantTargetSquare)
+        {
+            capturedPiece = HandleEnPassant(piece, newPosition);
+        }
+
+        if (capturedPiece == null)
+        {
+            capturedPiece = GetPieceAt(newPosition);
+        }
+        
+        if (capturedPiece != null)
+        {
+            PieceCaptureManager.Instance.CapturePiece(capturedPiece);
+            AudioManager.Instance.PlayCaptureSound();
+        }
+        else
+        {
+            AudioManager.Instance.PlayMoveSound();
+        }
+
+        PowerManager.Instance.UpdatePiecePosition(oldPosition, newPosition);
+        _pieces[oldPosition.x, oldPosition.y] = null;
+        _pieces[newPosition.x, newPosition.y] = piece;
+        piece.MoveTo(newPosition, GetLocalPosition(newPosition));
+
+        return capturedPiece;
+    }
+
+    
     public BoardState CreateBoardState()
     {
         BoardState state = new BoardState();
@@ -137,84 +163,44 @@ public class Chessboard : MonoBehaviour
         Debug.LogError("FATAL ERROR: The old Chessboard.UndoSimulatedMove is still being called! Find the culprit!");
     }
 
-    private void StandardMove(ChessPiece piece, Vector2Int newPosition)
-    {
-        Vector2Int oldPosition = piece._boardPosition;
-        bool wasCapture = false;
-
-        if (piece.Type == PieceType.King && Mathf.Abs(newPosition.x - oldPosition.x) == 2)
-        {
-            HandleCastle(piece, oldPosition, newPosition);
-            return; // Castle handles its own sounds and moves
-        }
-
-        if (piece.Type == PieceType.Pawn && newPosition == TurnManager.Instance.EnPassantTargetSquare)
-        {
-            HandleEnPassant(piece, newPosition);
-            wasCapture = true; // En passant is a capture
-        }
-
-        ChessPiece capturedPiece = GetPieceAt(newPosition);
-        if (capturedPiece != null)
-        {
-            PieceCaptureManager.Instance.CapturePiece(capturedPiece);
-            wasCapture = true;
-        }
-
-        // Play sound based on whether a capture occurred
-        if (wasCapture)
-        {
-            AudioManager.Instance.PlayCaptureSound();
-        }
-        else
-        {
-            AudioManager.Instance.PlayMoveSound();
-        }
-
-        _pieces[oldPosition.x, oldPosition.y] = null;
-        _pieces[newPosition.x, newPosition.y] = piece;
-
-        Vector3 localPos = GetLocalPosition(newPosition);
-        piece.MoveTo(newPosition, localPos);
-    }
-
-    private void HandleEnPassant(ChessPiece pawn, Vector2Int targetSquare)
+    private ChessPiece HandleEnPassant(ChessPiece pawn, Vector2Int targetSquare)
     {
         int direction = pawn.IsWhite ? -1 : 1;
         Vector2Int capturedPawnPos = new Vector2Int(targetSquare.x, targetSquare.y + direction);
         ChessPiece capturedPawn = GetPieceAt(capturedPawnPos);
         if (capturedPawn != null)
         {
-            PieceCaptureManager.Instance.CapturePiece(capturedPawn);
             _pieces[capturedPawnPos.x, capturedPawnPos.y] = null;
         }
+        return capturedPawn;
     }
 
     private void HandleCastle(ChessPiece king, Vector2Int oldKingPos, Vector2Int newKingPos)
     {
-        // --- THIS IS THE ROBUST FIX ---
-        // Determine the correct rank (row) based on the king's color.
         int rank = king.IsWhite ? 0 : 7;
-
-        // Move the king first.
-        _pieces[oldKingPos.x, oldKingPos.y] = null;
-        _pieces[newKingPos.x, newKingPos.y] = king;
-        king.MoveTo(newKingPos, GetLocalPosition(newKingPos));
-
         Vector2Int rookOldPos, rookNewPos;
+
         if (newKingPos.x > oldKingPos.x) // Kingside
         {
-            // The rook is always on file 7 of the correct rank.
             rookOldPos = new Vector2Int(7, rank);
             rookNewPos = new Vector2Int(newKingPos.x - 1, rank);
         }
         else // Queenside
         {
-            // The rook is always on file 0 of the correct rank.
             rookOldPos = new Vector2Int(0, rank);
             rookNewPos = new Vector2Int(newKingPos.x + 1, rank);
         }
-        // ---------------------------------
+
+        // --- THIS IS THE FIX ---
+        // Update the PowerManager's records BEFORE moving the pieces.
+        PowerManager.Instance.UpdatePiecePosition(oldKingPos, newKingPos);
+        PowerManager.Instance.UpdatePiecePosition(rookOldPos, rookNewPos);
+        // -----------------------
+
+        // Now, it's safe to move the pieces.
+        _pieces[oldKingPos.x, oldKingPos.y] = null;
+        _pieces[newKingPos.x, newKingPos.y] = king;
+        king.MoveTo(newKingPos, GetLocalPosition(newKingPos));
 
         ChessPiece rook = GetPieceAt(rookOldPos);
         if (rook != null)

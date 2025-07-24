@@ -7,6 +7,7 @@ public class KnightLogic : PieceLogic
     public override List<Vector2Int> GetAttackMoves(BoardState boardState) => GetPossibleMoves(boardState);
     public override List<Vector2Int> GetPossibleMoves(BoardState boardState)
     {
+        // 1. Get my native Knight moves.
         var moves = new List<Vector2Int>();
         Vector2Int[] offsets = { new(1, 2), new(1, -2), new(-1, 2), new(-1, -2), new(2, 1), new(2, -1), new(-2, 1), new(-2, -1) };
         foreach (var offset in offsets)
@@ -18,6 +19,10 @@ public class KnightLogic : PieceLogic
                 if (targetPiece == null || targetPiece.Value.IsWhite != this.IsWhite) moves.Add(nextPos);
             }
         }
+
+        // 2. Add any inherited powers (e.g., from a Rook or Bishop).
+        AddInheritedMoves(moves, boardState);
+        
         return moves;
     }
 }

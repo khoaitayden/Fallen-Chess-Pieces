@@ -9,4 +9,5 @@ public abstract class Player
         Type = type;
     }
     public abstract void OnTurnStart();
+    public virtual void OnTurnEnd() { } // New method
 }

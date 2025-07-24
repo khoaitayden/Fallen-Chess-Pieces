@@ -1,15 +1,15 @@
+// In Scripts/Manager/ChessPieceManager.cs
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class ChessPieceManager : MonoBehaviour
 {
     public static ChessPieceManager Instance { get; private set; }
-
-    // This event will be fired whenever a pawn is successfully promoted.
     public event Action<ChessPiece, PieceType> OnPawnPromoted;
 
-    [Header("Piece Prefabs")]
+    [Header("Standard Piece Prefabs")]
     [SerializeField] private GameObject whitePawnPrefab;
     [SerializeField] private GameObject whiteRookPrefab;
     [SerializeField] private GameObject whiteKnightPrefab;
@@ -23,10 +23,19 @@ public class ChessPieceManager : MonoBehaviour
     [SerializeField] private GameObject blackQueenPrefab;
     [SerializeField] private GameObject blackKingPrefab;
 
+    [Header("Combination Piece Prefabs")]
+    [SerializeField] private GameObject whiteKnightRookPrefab;
+    [SerializeField] private GameObject whiteKnightBishopPrefab;
+    [SerializeField] private GameObject whiteRookBishopPrefab;
+    [SerializeField] private GameObject whiteKnightBishopRookPrefab;
+    [SerializeField] private GameObject blackKnightRookPrefab;
+    [SerializeField] private GameObject blackKnightBishopPrefab;
+    [SerializeField] private GameObject blackRookBishopPrefab;
+    [SerializeField] private GameObject blackKnightBishopRookPrefab;
+
     [Header("Dependencies")]
     [SerializeField] private Chessboard chessboard;
 
-    // Dictionaries for fast, easy access to prefabs by PieceType.
     private Dictionary<PieceType, GameObject> _whitePrefabs = new Dictionary<PieceType, GameObject>();
     private Dictionary<PieceType, GameObject> _blackPrefabs = new Dictionary<PieceType, GameObject>();
 
@@ -34,26 +43,36 @@ public class ChessPieceManager : MonoBehaviour
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); }
         else { Instance = this; }
-
-        // Populate the dictionaries once at the start.
         InitializePrefabDictionaries();
     }
 
     private void InitializePrefabDictionaries()
     {
+        // Standard White
         _whitePrefabs[PieceType.Pawn] = whitePawnPrefab;
         _whitePrefabs[PieceType.Rook] = whiteRookPrefab;
         _whitePrefabs[PieceType.Knight] = whiteKnightPrefab;
         _whitePrefabs[PieceType.Bishop] = whiteBishopPrefab;
         _whitePrefabs[PieceType.Queen] = whiteQueenPrefab;
         _whitePrefabs[PieceType.King] = whiteKingPrefab;
+        // Combination White
+        _whitePrefabs[PieceType.KnightRook] = whiteKnightRookPrefab;
+        _whitePrefabs[PieceType.KnightBishop] = whiteKnightBishopPrefab;
+        _whitePrefabs[PieceType.RookBishop] = whiteRookBishopPrefab;
+        _whitePrefabs[PieceType.KnightBishopRook] = whiteKnightBishopRookPrefab;
 
+        // Standard Black
         _blackPrefabs[PieceType.Pawn] = blackPawnPrefab;
         _blackPrefabs[PieceType.Rook] = blackRookPrefab;
         _blackPrefabs[PieceType.Knight] = blackKnightPrefab;
         _blackPrefabs[PieceType.Bishop] = blackBishopPrefab;
         _blackPrefabs[PieceType.Queen] = blackQueenPrefab;
         _blackPrefabs[PieceType.King] = blackKingPrefab;
+        // Combination Black
+        _blackPrefabs[PieceType.KnightRook] = blackKnightRookPrefab;
+        _blackPrefabs[PieceType.KnightBishop] = blackKnightBishopPrefab;
+        _blackPrefabs[PieceType.RookBishop] = blackRookBishopPrefab;
+        _blackPrefabs[PieceType.KnightBishopRook] = blackKnightBishopRookPrefab;
     }
 
     public void SpawnAllPieces()
@@ -89,8 +108,6 @@ public class ChessPieceManager : MonoBehaviour
         chessboard.SetPiece(null, position);
         Destroy(pawn.gameObject);
         SpawnPiece(newType, position, isWhite);
-        
-        // Announce that the promotion happened.
         OnPawnPromoted?.Invoke(pawn, newType);
     }
 
@@ -100,7 +117,7 @@ public class ChessPieceManager : MonoBehaviour
         return prefabs.ContainsKey(type) ? prefabs[type] : null;
     }
 
-    private void SpawnPiece(PieceType type, Vector2Int position, bool isWhite)
+    private void SpawnPiece(PieceType type, Vector2Int position, bool isWhite, bool hasMoved = false)
     {
         GameObject prefab = GetPrefabForPiece(type, isWhite);
         if (prefab == null) return;
@@ -108,17 +125,55 @@ public class ChessPieceManager : MonoBehaviour
         pieceObject.transform.position = chessboard.GetWorldPosition(position);
         ChessPiece piece = pieceObject.GetComponent<ChessPiece>();
         piece.Initialize(isWhite, position);
+        piece._hasMoved = hasMoved; // Preserve the moved state
         chessboard.SetPiece(piece, position);
     }
 
-    // This is the new, reliable way for the UI to get a sprite.
     public Sprite GetSpriteForPiece(PieceType type, bool isWhite)
     {
         GameObject prefab = GetPrefabForPiece(type, isWhite);
-        if (prefab != null && prefab.TryGetComponent(out SpriteRenderer sr))
+        return prefab != null ? prefab.GetComponent<SpriteRenderer>().sprite : null;
+    }
+    
+    // This method is called by the PowerManager when a piece's powers change.
+    public void UpdatePieceAppearance(ChessPiece pieceToUpdate)
+    {
+        if (pieceToUpdate == null) return;
+
+        Vector2Int position = pieceToUpdate._boardPosition;
+        bool isWhite = pieceToUpdate.IsWhite;
+
+        List<PieceType> powers = PowerManager.Instance.GetPowersForPiece(position);
+        
+        // Add the piece's original power to the list for easier checking.
+        if (pieceToUpdate.Type == PieceType.Rook || pieceToUpdate.Type == PieceType.Knight || pieceToUpdate.Type == PieceType.Bishop)
         {
-            return sr.sprite;
+            if (!powers.Contains(pieceToUpdate.Type))
+            {
+                powers.Add(pieceToUpdate.Type);
+            }
         }
-        return null;
+
+        PieceType newType = pieceToUpdate.Type;
+
+        bool hasKnight = powers.Contains(PieceType.Knight);
+        bool hasRook = powers.Contains(PieceType.Rook);
+        bool hasBishop = powers.Contains(PieceType.Bishop);
+
+        if (hasKnight && hasRook && hasBishop) newType = PieceType.KnightBishopRook;
+        else if (hasKnight && hasRook)         newType = PieceType.KnightRook;
+        else if (hasKnight && hasBishop)       newType = PieceType.KnightBishop;
+        else if (hasRook && hasBishop)         newType = PieceType.RookBishop;
+        // No need for single-power fallbacks, as we want to keep the original piece type if only one power exists.
+
+        if (newType != pieceToUpdate.Type)
+        {
+            Debug.Log($"Swapping piece at {position} from {pieceToUpdate.Type} to {newType}");
+            
+            chessboard.SetPiece(null, position);
+            Destroy(pieceToUpdate.gameObject);
+
+            SpawnPiece(newType, position, isWhite);
+        }
     }
 }

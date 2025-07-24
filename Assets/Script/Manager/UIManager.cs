@@ -10,6 +10,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameplayUI gameplayUI;
     [SerializeField] private GameOverUI gameOverUI;
     [SerializeField] private PromotionUI promotionUI;
+    [SerializeField] private PowerTransferUI powerTransferUI;
 
     private void Awake()
     {
@@ -52,13 +53,13 @@ public class UIManager : MonoBehaviour
     {
         menuUI.Show();
         chooseAIDifficultyUI.Hide();
-        gameplayUI.gameObject.SetActive(false); 
+        gameplayUI.gameObject.SetActive(false);
     }
 
     public void ShowAIDifficultyPanel()
     {
         menuUI.Hide();
-        chooseAIDifficultyUI.Show(); 
+        chooseAIDifficultyUI.Show();
         gameplayUI.gameObject.SetActive(false);
     }
 
@@ -66,7 +67,7 @@ public class UIManager : MonoBehaviour
     {
         menuUI.Hide();
         chooseAIDifficultyUI.Hide();
-        gameplayUI.gameObject.SetActive(true); 
+        gameplayUI.gameObject.SetActive(true);
         gameplayUI.ShowPanel();
     }
 
@@ -88,5 +89,15 @@ public class UIManager : MonoBehaviour
     public void HideAIDifficultyPanel()
     {
         chooseAIDifficultyUI.Hide();
+    }
+    
+    public void ShowPowerTransferPanel(bool isWhite, PieceType powerType)
+    {
+        powerTransferUI.Show();
+    }
+
+    public void HidePowerTransferPanel()
+    {
+        powerTransferUI.Hide();
     }
 }

@@ -1,1 +1,0 @@
-public class PawnPiece : ChessPiece { protected override void CreateLogic() { _logic = new PawnLogic(); } }

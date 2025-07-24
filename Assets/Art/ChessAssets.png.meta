@@ -165,9 +165,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 68
-        width: 65
-        height: 36
+        y: 69
+        width: 64
+        height: 35
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -186,10 +186,10 @@ TextureImporter:
       name: ChessAssets_1
       rect:
         serializedVersion: 2
-        x: 71
-        y: 71
-        width: 34
-        height: 33
+        x: 72
+        y: 72
+        width: 32
+        height: 32
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -208,9 +208,9 @@ TextureImporter:
       name: ChessAssets_2
       rect:
         serializedVersion: 2
-        x: 0
-        y: 46
-        width: 33
+        x: 123
+        y: 77
+        width: 17
         height: 19
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -230,9 +230,9 @@ TextureImporter:
       name: ChessAssets_3
       rect:
         serializedVersion: 2
-        x: 0
-        y: 28
-        width: 33
+        x: 149
+        y: 77
+        width: 13
         height: 19
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -252,10 +252,10 @@ TextureImporter:
       name: ChessAssets_4
       rect:
         serializedVersion: 2
-        x: 47
+        x: 0
         y: 47
-        width: 15
-        height: 18
+        width: 32
+        height: 17
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -274,10 +274,10 @@ TextureImporter:
       name: ChessAssets_5
       rect:
         serializedVersion: 2
-        x: 61
-        y: 47
-        width: 15
-        height: 18
+        x: 48
+        y: 48
+        width: 13
+        height: 16
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -296,10 +296,10 @@ TextureImporter:
       name: ChessAssets_6
       rect:
         serializedVersion: 2
-        x: 76
-        y: 47
-        width: 15
-        height: 19
+        x: 62
+        y: 48
+        width: 13
+        height: 16
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -318,10 +318,10 @@ TextureImporter:
       name: ChessAssets_7
       rect:
         serializedVersion: 2
-        x: 90
-        y: 47
-        width: 15
-        height: 19
+        x: 77
+        y: 48
+        width: 13
+        height: 17
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -340,10 +340,10 @@ TextureImporter:
       name: ChessAssets_8
       rect:
         serializedVersion: 2
-        x: 0
-        y: 7
-        width: 33
-        height: 18
+        x: 91
+        y: 48
+        width: 13
+        height: 17
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -362,10 +362,10 @@ TextureImporter:
       name: ChessAssets_9
       rect:
         serializedVersion: 2
-        x: 44
-        y: 23
-        width: 19
-        height: 19
+        x: 122
+        y: 54
+        width: 17
+        height: 20
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -384,10 +384,10 @@ TextureImporter:
       name: ChessAssets_10
       rect:
         serializedVersion: 2
-        x: 62
-        y: 23
-        width: 19
-        height: 19
+        x: 146
+        y: 55
+        width: 17
+        height: 17
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -406,10 +406,10 @@ TextureImporter:
       name: ChessAssets_11
       rect:
         serializedVersion: 2
-        x: 77
-        y: 0
-        width: 15
-        height: 24
+        x: 0
+        y: 29
+        width: 32
+        height: 17
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -428,10 +428,10 @@ TextureImporter:
       name: ChessAssets_12
       rect:
         serializedVersion: 2
-        x: 80
-        y: 23
-        width: 15
-        height: 21
+        x: 45
+        y: 24
+        width: 17
+        height: 17
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -450,10 +450,10 @@ TextureImporter:
       name: ChessAssets_13
       rect:
         serializedVersion: 2
-        x: 91
-        y: 0
-        width: 15
-        height: 24
+        x: 63
+        y: 24
+        width: 17
+        height: 17
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -472,10 +472,10 @@ TextureImporter:
       name: ChessAssets_14
       rect:
         serializedVersion: 2
-        x: 94
-        y: 23
-        width: 14
-        height: 21
+        x: 81
+        y: 24
+        width: 13
+        height: 19
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -494,10 +494,10 @@ TextureImporter:
       name: ChessAssets_15
       rect:
         serializedVersion: 2
-        x: 47
-        y: 0
-        width: 15
-        height: 22
+        x: 95
+        y: 24
+        width: 13
+        height: 19
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -516,10 +516,10 @@ TextureImporter:
       name: ChessAssets_16
       rect:
         serializedVersion: 2
-        x: 61
-        y: 0
-        width: 15
-        height: 22
+        x: 122
+        y: 27
+        width: 17
+        height: 19
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -534,11 +534,187 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: ChessAssets_17
+      rect:
+        serializedVersion: 2
+        x: 148
+        y: 27
+        width: 13
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f42e61e9b0ce6154895def5b839014cc
+      internalID: 85559688
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ChessAssets_18
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 8
+        width: 32
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f082ad8c2d38bdf419a0ad944a46a4a5
+      internalID: -1810307208
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ChessAssets_19
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 0
+        width: 13
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 482d3406b280eca42ba7b30ebc433fe8
+      internalID: 563615206
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ChessAssets_20
+      rect:
+        serializedVersion: 2
+        x: 62
+        y: 0
+        width: 13
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9c1a3a1755703b64885cc024a5aae53a
+      internalID: 1780598930
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ChessAssets_21
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 0
+        width: 13
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2a40f976684938441bec0952afa1cb21
+      internalID: 1178222691
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ChessAssets_22
+      rect:
+        serializedVersion: 2
+        x: 92
+        y: 0
+        width: 13
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5b83332369f991e43b81145e127a57f3
+      internalID: 2065233417
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ChessAssets_23
+      rect:
+        serializedVersion: 2
+        x: 121
+        y: 4
+        width: 17
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8ed9cdf46d0162848ba36b500284d6e2
+      internalID: 1195014
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ChessAssets_24
+      rect:
+        serializedVersion: 2
+        x: 145
+        y: 5
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1571130de54dd704a9461c88e366b2c5
+      internalID: -2140411801
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 87d27fbcf0cc3d74d924064730953ac2
     internalID: 0
     vertices: []
     indices: 
@@ -557,7 +733,15 @@ TextureImporter:
       ChessAssets_14: 5980770430823731249
       ChessAssets_15: -1757226610248740884
       ChessAssets_16: -3987328044240646586
+      ChessAssets_17: 85559688
+      ChessAssets_18: -1810307208
+      ChessAssets_19: 563615206
       ChessAssets_2: 8487762053859073244
+      ChessAssets_20: 1780598930
+      ChessAssets_21: 1178222691
+      ChessAssets_22: 2065233417
+      ChessAssets_23: 1195014
+      ChessAssets_24: -2140411801
       ChessAssets_3: -9000183755246362520
       ChessAssets_4: 8189405520400246493
       ChessAssets_5: -2602065805392784135

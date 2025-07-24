@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 5836274196080858393}
   - component: {fileID: 3359413460735378482}
-  - component: {fileID: 8715985811360821680}
   - component: {fileID: 6849274399004991681}
+  - component: {fileID: 1070345768795244790}
   m_Layer: 0
   m_Name: WhitePawn
   m_TagString: Untagged
@@ -78,7 +78,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 5
-  m_Sprite: {fileID: 8189405520400246493, guid: 3b9bec07db0fd0745a898e8513060c24, type: 3}
+  m_Sprite: {fileID: -2602065805392784135, guid: 3b9bec07db0fd0745a898e8513060c24, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -89,21 +89,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &8715985811360821680
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8699097464342626471}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 24dc29a40fcd7024cbe879b03430469b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _pieceType: 0
-  _isWhite: 1
-  _boardPosition: {x: 0, y: 0}
 --- !u!61 &6849274399004991681
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -142,7 +127,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.6, y: 0.72}
+    oldSize: {x: 0.52, y: 0.64}
     newSize: {x: 0.9375, y: 1.125}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -150,3 +135,19 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &1070345768795244790
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8699097464342626471}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2cf1ab5c2ee238c408570bcbbdf7f8ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _pieceType: 0
+  _isWhite: 1
+  _boardPosition: {x: 0, y: 0}
+  _hasMoved: 0

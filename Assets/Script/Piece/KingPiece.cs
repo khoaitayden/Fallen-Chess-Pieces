@@ -1,1 +1,0 @@
-public class KingPiece : ChessPiece { protected override void CreateLogic() { _logic = new KingLogic(); } }

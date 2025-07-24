@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 697999422564696629}
   - component: {fileID: 7396969892808510881}
-  - component: {fileID: 5517553851757567603}
   - component: {fileID: 8062869149229853149}
+  - component: {fileID: 4738288477424174729}
   m_Layer: 0
   m_Name: BlackRook
   m_TagString: Untagged
@@ -78,7 +78,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -8843148425658363065, guid: 3b9bec07db0fd0745a898e8513060c24, type: 3}
+  m_Sprite: {fileID: 1293698378508096860, guid: 3b9bec07db0fd0745a898e8513060c24, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -89,21 +89,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &5517553851757567603
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7983588611437731839}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e38abe7eacef2f141bb563de27ffc6f4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _pieceType: 1
-  _isWhite: 0
-  _boardPosition: {x: 0, y: 0}
 --- !u!61 &8062869149229853149
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -142,7 +127,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.6, y: 0.76}
+    oldSize: {x: 0.52, y: 0.68}
     newSize: {x: 0.9375, y: 1.1875}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -150,3 +135,19 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &4738288477424174729
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7983588611437731839}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2cf1ab5c2ee238c408570bcbbdf7f8ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _pieceType: 1
+  _isWhite: 0
+  _boardPosition: {x: 0, y: 0}
+  _hasMoved: 0
