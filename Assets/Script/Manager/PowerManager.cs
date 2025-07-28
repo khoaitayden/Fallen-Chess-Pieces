@@ -7,11 +7,9 @@ public class PowerManager : MonoBehaviour
 {
     public static PowerManager Instance { get; private set; }
 
-    // --- ANNOUNCEMENTS (EVENTS) ---
-    public event Action<bool, PieceType> OnPowerTransferRequired; // isWhitePlayerWhoLostPiece, powerType
-    public event Action<bool> OnExtraLifeGained; // isWhitePlayerWhoGainedLife
+    public event Action<bool, PieceType> OnPowerTransferRequired; 
+    public event Action<bool> OnExtraLifeGained; 
 
-    // --- STATE TRACKING ---
     private Dictionary<Vector2Int, List<PieceType>> _piecePowers = new Dictionary<Vector2Int, List<PieceType>>();
     private int _whiteExtraLifeTokens = 0;
     private int _blackExtraLifeTokens = 0;
@@ -38,12 +36,11 @@ public class PowerManager : MonoBehaviour
         }
     }
 
-    // This is the single event handler that drives all the logic.
     private void HandlePieceCaptured(ChessPiece capturedPiece, List<ChessPiece> fullCapturedList)
     {
+        
         if (capturedPiece.Type == PieceType.King) return;
 
-        // --- 1. POWER TRANSFER LOGIC ---
         bool isWhitePiece = capturedPiece.IsWhite;
         var pieceCounts = isWhitePiece ? _whitePieceCounts : _blackPieceCounts;
 
@@ -61,7 +58,6 @@ public class PowerManager : MonoBehaviour
             }
         }
 
-        // --- 2. EXTRA-LIFE TOKEN LOGIC ---
         bool capturingPlayerIsWhite = !isWhitePiece;
         int capturesNeeded = GameManager.Instance.CurrentSettings.CapturesForExtraLife;
 
@@ -74,7 +70,6 @@ public class PowerManager : MonoBehaviour
         }
     }
 
-    // --- PUBLIC METHODS for other scripts to call ---
 
     public void GrantPower(ChessPiece targetPiece, PieceType powerType)
     {
@@ -93,12 +88,13 @@ public class PowerManager : MonoBehaviour
 
     public void UpdatePiecePosition(Vector2Int from, Vector2Int to)
     {
+        List<PieceType> powers = new List<PieceType>();
         if (_piecePowers.ContainsKey(from))
         {
-            List<PieceType> powers = _piecePowers[from];
+            powers = _piecePowers[from];
             _piecePowers.Remove(from);
-            _piecePowers[to] = powers;
         }
+        _piecePowers[to] = powers;
     }
 
     public List<PieceType> GetPowersForPiece(Vector2Int piecePosition)
@@ -132,25 +128,4 @@ public class PowerManager : MonoBehaviour
         };
     }
     
-    public bool CheckForPowerTransfer(ChessPiece capturedPiece)
-    {
-        bool isWhitePiece = capturedPiece.IsWhite;
-        var pieceCounts = isWhitePiece ? _whitePieceCounts : _blackPieceCounts;
-
-        if (pieceCounts.ContainsKey(capturedPiece.Type))
-        {
-            pieceCounts[capturedPiece.Type]--;
-
-            if (pieceCounts[capturedPiece.Type] == 0)
-            {
-                if (capturedPiece.Type == PieceType.Rook || capturedPiece.Type == PieceType.Knight || capturedPiece.Type == PieceType.Bishop)
-                {
-                    // A transfer is required. Announce it and return true.
-                    OnPowerTransferRequired?.Invoke(isWhitePiece, capturedPiece.Type);
-                    return true;
-                }
-            }
-        }
-        return false; // No transfer required.
-    }
 }

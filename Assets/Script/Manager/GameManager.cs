@@ -43,32 +43,27 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // --- THIS IS THE NEW, CENTRAL GAME LOOP ---
 
     public void ProcessMove(ChessPiece piece, Vector2Int from, Vector2Int to)
     {
-        // Tell the previous player to stop listening for input.
+        bool isWhiteMove = piece.IsWhite;
+        if (TurnManager.Instance.IsWhiteTurn != isWhiteMove)
+        {
+            Debug.LogWarning($"Ignoring move: it's not {(isWhiteMove ? "White" : "Black")}'s turn!");
+            return;
+        }
         GetCurrentPlayer()?.OnTurnEnd();
 
-        // 1. Execute the move on the board.
         ChessPiece capturedPiece = Chessboard.Instance.MovePiece(piece, to);
 
-        // 2. Log the move for history.
         LogMove(piece, from, to);
 
-        // 3. Check for special states that PAUSE the game.
         if (piece.Type == PieceType.Pawn && (to.y == 0 || to.y == 7))
         {
             InitiatePawnPromotion(piece);
             return;
         }
-        
-        if (capturedPiece != null && PowerManager.Instance.CheckForPowerTransfer(capturedPiece))
-        {
-            return;
-        }
 
-        // 4. If it was a normal move, end the turn immediately.
         EndTurn();
     }
 
@@ -94,36 +89,68 @@ public class GameManager : MonoBehaviour
         MoveHistory.Instance.AddMove(move);
     }
     
-    // --- SPECIAL STATE HANDLING ---
-
     private void HandlePowerTransferRequired(bool isWhite, PieceType powerType)
     {
+        if (GetCurrentPlayer() is HumanPlayer h) {
+            h.DisablePowerTransferInput();
+            h.ClearAllHighlights();
+        }
+        UIManager.Instance.HidePowerTransferPanel();
+
+        List<ChessPiece> validTargets = FindValidPowerTargets(isWhite);
+        if (validTargets.Count == 0)
+        {
+            Debug.Log($"No valid power targets.  Skipping transfer for {(isWhite?"White":"Black")}.");
+            ChangeState(GameState.Playing);
+            EndTurn();
+            return;
+        }
+
         _pendingPowerType = powerType;
         ChangeState(GameState.PowerTransfer);
         UIManager.Instance.ShowPowerTransferPanel(isWhite, powerType);
         
         Player playerToChoose = isWhite ? GetWhitePlayer() : GetBlackPlayer();
-        BoardPresenter.Instance.OrientBoardToPlayer(isWhite);
+        if (playerToChoose is HumanPlayer)
+        {
+            BoardPresenter.Instance.OrientBoardToPlayer(isWhite);
+        }
 
         if (playerToChoose is HumanPlayer humanPlayer)
         {
+            humanPlayer.ClearAllHighlights();
             humanPlayer.EnablePowerTransferInput();
             humanPlayer.HighlightPowerTargets();
         }
         else if (playerToChoose is AIPlayer)
         {
-            ChessPiece targetPiece = FindBestAIPowerTarget(isWhite);
-            if (targetPiece != null)
-            {
-                CompletePowerTransfer(targetPiece);
-            }
-            else
-            {
-                ResumeTurnAfterChoice(null);
-            }
+            ChessPiece targetPiece = validTargets[Random.Range(0, validTargets.Count)];
+            CompletePowerTransfer(targetPiece);
         }
     }
 
+    public List<ChessPiece> FindValidPowerTargets(bool isWhite)
+    {
+        List<ChessPiece> validTargets = new List<ChessPiece>();
+        
+        for (int x = 0; x < Constants.BOARD_SIZE; x++)
+        {
+            for (int y = 0; y < Constants.BOARD_SIZE; y++)
+            {
+                ChessPiece piece = Chessboard.Instance.GetPieceAt(new Vector2Int(x, y));
+                if (piece != null && 
+                    piece.IsWhite == isWhite &&
+                    piece.Type != PieceType.King && 
+                    piece.Type != PieceType.Queen && 
+                    piece.Type != PieceType.Pawn)
+                {
+                    validTargets.Add(piece);
+                }
+            }
+        }
+        
+        return validTargets;
+    }
     public void CompletePowerTransfer(ChessPiece targetPiece)
     {
         PowerManager.Instance.GrantPower(targetPiece, _pendingPowerType);
@@ -133,28 +160,31 @@ public class GameManager : MonoBehaviour
     public void FinalizePawnPromotion(PieceType newPieceType)
     {
         if (_pawnToPromote == null) return;
+        
+        if (GetCurrentPlayer() is HumanPlayer hp) hp.ClearAllHighlights();
+        UIManager.Instance.HidePromotionPanel();
+
         ChessPieceManager.Instance.PromotePawn(_pawnToPromote, newPieceType);
         _pawnToPromote = null;
         ResumeTurnAfterChoice(null);
+        EndTurn();
     }
     
     private void ResumeTurnAfterChoice(ChessPiece pieceInvolved)
     {
-        if (pieceInvolved != null)
+        if (pieceInvolved != null && GetCurrentPlayer() is HumanPlayer human)
         {
-            Player playerWhoChose = pieceInvolved.IsWhite ? GetWhitePlayer() : GetBlackPlayer();
-            if (playerWhoChose is HumanPlayer humanPlayer)
-            {
-                humanPlayer.DisablePowerTransferInput();
-            }
+            human.DisablePowerTransferInput();
+            human.ClearAllHighlights();
         }
         
+        // 2) Hide any leftover UI:
         ChangeState(GameState.Playing);
         UIManager.Instance.HidePowerTransferPanel();
         UIManager.Instance.HidePromotionPanel();
         
-        // The choice was part of the turn. NOW the turn can end.
-        EndTurn();
+        // 3) Let the new active player start listening:
+        NotifyCurrentPlayer();
     }
 
     public void InitiatePawnPromotion(ChessPiece pawn)

@@ -5,7 +5,7 @@ public class GameSettings
 
     public float TimeIncrement { get; set; } = 0f;
 
-    public int CapturesForExtraLife { get; set; } = 4;
+    public int CapturesForExtraLife { get; set; } = 8;
 
     public int ResurrectionTurns { get; set; } = 2;
 

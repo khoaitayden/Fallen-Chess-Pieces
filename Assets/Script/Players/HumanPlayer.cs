@@ -6,7 +6,7 @@ public class HumanPlayer : Player
     private ChessPiece _selectedPiece;
     private List<Vector2Int> _validMoves;
     private Chessboard _chessboard;
-
+    
     public HumanPlayer(bool isWhite) : base(isWhite, PlayerType.Human)
     {
         _chessboard = Object.FindObjectOfType<Chessboard>();
@@ -35,14 +35,13 @@ public class HumanPlayer : Player
             HandlePowerTransferClick(position);
         }
     }
-    
+
     private void HandlePlayStateClick(Vector2Int position)
     {
         if (_selectedPiece != null)
         {
             if (_validMoves != null && _validMoves.Contains(position))
             {
-                // The player's only job is to report the move.
                 GameManager.Instance.ProcessMove(_selectedPiece, _selectedPiece._boardPosition, position);
                 return;
             }
@@ -68,9 +67,9 @@ public class HumanPlayer : Player
         if (position == new Vector2Int(-1, -1)) return;
         ChessPiece clickedPiece = _chessboard.GetPieceAt(position);
 
-        if (clickedPiece != null && 
+        if (clickedPiece != null &&
             clickedPiece.IsWhite == this.IsWhite &&
-            clickedPiece.Type != PieceType.King && 
+            clickedPiece.Type != PieceType.King &&
             clickedPiece.Type != PieceType.Queen &&
             clickedPiece.Type != PieceType.Pawn)
         {
@@ -108,20 +107,11 @@ public class HumanPlayer : Player
 
     public void HighlightPowerTargets()
     {
-        for (int x = 0; x < Constants.BOARD_SIZE; x++)
+        ClearHighlights();
+        List<ChessPiece> validTargets = GameManager.Instance.FindValidPowerTargets(this.IsWhite);
+        foreach (ChessPiece piece in validTargets)
         {
-            for (int y = 0; y < Constants.BOARD_SIZE; y++)
-            {
-                ChessPiece piece = _chessboard.GetPieceAt(new Vector2Int(x, y));
-                if (piece != null &&
-                    piece.IsWhite == this.IsWhite &&
-                    piece.Type != PieceType.King &&
-                    piece.Type != PieceType.Queen &&
-                    piece.Type != PieceType.Pawn)
-                {
-                    _chessboard.GetSquareAt(piece._boardPosition)?.SetHighlight(true, HighlightColors.PowerTarget);
-                }
-            }
+            _chessboard.GetSquareAt(piece._boardPosition)?.SetHighlight(true, HighlightColors.PowerTarget);
         }
     }
 
@@ -140,18 +130,26 @@ public class HumanPlayer : Player
         {
             for (int y = 0; y < Constants.BOARD_SIZE; y++)
             {
-                _chessboard.GetSquareAt(new Vector2Int(x, y))?.SetHighlight(false, Color.clear);
+                Vector2Int pos = new Vector2Int(x, y);
+                BoardSquare square = _chessboard.GetSquareAt(pos);
+                square?.SetHighlight(false, Color.clear);
             }
         }
     }
-    
+
     public void EnablePowerTransferInput()
     {
+        InputController.Instance.OnBoardClick -= HandleBoardClick;
         InputController.Instance.OnBoardClick += HandleBoardClick;
     }
 
     public void DisablePowerTransferInput()
     {
         InputController.Instance.OnBoardClick -= HandleBoardClick;
+    }
+    
+    public void ClearAllHighlights()
+    {
+        ClearHighlights();
     }
 }

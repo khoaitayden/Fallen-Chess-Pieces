@@ -92,7 +92,10 @@ public class Chessboard : MonoBehaviour
     private ChessPiece StandardMove(ChessPiece piece, Vector2Int newPosition)
     {
         Vector2Int oldPosition = piece._boardPosition;
-        ChessPiece capturedPiece = null; // Start with no captured piece.
+        ChessPiece capturedPiece = null;
+
+        PowerManager.Instance.UpdatePiecePosition(oldPosition, newPosition);
+        // ---------------------------------------------------------------
 
         if (piece.Type == PieceType.King && Mathf.Abs(newPosition.x - oldPosition.x) == 2)
         {
@@ -103,27 +106,31 @@ public class Chessboard : MonoBehaviour
         {
             capturedPiece = HandleEnPassant(piece, newPosition);
         }
-
         if (capturedPiece == null)
         {
             capturedPiece = GetPieceAt(newPosition);
         }
-        
         if (capturedPiece != null)
         {
+            // ADD THIS: Clear highlight on the square where the piece was captured
+            BoardSquare capturedSquare = GetSquareAt(newPosition);
+            capturedSquare?.ClearHighlight();
             PieceCaptureManager.Instance.CapturePiece(capturedPiece);
+            capturedSquare?.ClearHighlight();
             AudioManager.Instance.PlayCaptureSound();
+            // DO NOT call UpdatePiecePosition here for the captured piece's power.
+            // That is handled by the PowerManager's event system and GrantPower.
         }
         else
         {
             AudioManager.Instance.PlayMoveSound();
+            // UpdatePiecePosition was already called above for the moving piece.
         }
-
-        PowerManager.Instance.UpdatePiecePosition(oldPosition, newPosition);
+        
+        // --- REST OF THE MOVE LOGIC ---
         _pieces[oldPosition.x, oldPosition.y] = null;
         _pieces[newPosition.x, newPosition.y] = piece;
         piece.MoveTo(newPosition, GetLocalPosition(newPosition));
-
         return capturedPiece;
     }
 
@@ -170,6 +177,10 @@ public class Chessboard : MonoBehaviour
         ChessPiece capturedPawn = GetPieceAt(capturedPawnPos);
         if (capturedPawn != null)
         {
+            // ADD THIS: Clear highlight on the captured pawn's square
+            BoardSquare capturedSquare = GetSquareAt(capturedPawnPos);
+            capturedSquare?.ClearHighlight();
+            
             _pieces[capturedPawnPos.x, capturedPawnPos.y] = null;
         }
         return capturedPawn;
@@ -191,13 +202,10 @@ public class Chessboard : MonoBehaviour
             rookNewPos = new Vector2Int(newKingPos.x + 1, rank);
         }
 
-        // --- THIS IS THE FIX ---
-        // Update the PowerManager's records BEFORE moving the pieces.
         PowerManager.Instance.UpdatePiecePosition(oldKingPos, newKingPos);
         PowerManager.Instance.UpdatePiecePosition(rookOldPos, rookNewPos);
         // -----------------------
 
-        // Now, it's safe to move the pieces.
         _pieces[oldKingPos.x, oldKingPos.y] = null;
         _pieces[newKingPos.x, newKingPos.y] = king;
         king.MoveTo(newKingPos, GetLocalPosition(newKingPos));

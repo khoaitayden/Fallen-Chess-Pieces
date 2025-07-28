@@ -164,7 +164,6 @@ public class ChessPieceManager : MonoBehaviour
         else if (hasKnight && hasRook)         newType = PieceType.KnightRook;
         else if (hasKnight && hasBishop)       newType = PieceType.KnightBishop;
         else if (hasRook && hasBishop)         newType = PieceType.RookBishop;
-        // No need for single-power fallbacks, as we want to keep the original piece type if only one power exists.
 
         if (newType != pieceToUpdate.Type)
         {

@@ -1613,14 +1613,14 @@ MonoBehaviour:
   rookButton: {fileID: 1010041592}
   bishopButton: {fileID: 1786026650}
   knightButton: {fileID: 1006961063}
-  whiteQueenSprite: {fileID: -1757226610248740884, guid: 3b9bec07db0fd0745a898e8513060c24, type: 3}
-  whiteRookSprite: {fileID: 205593542556291567, guid: 3b9bec07db0fd0745a898e8513060c24, type: 3}
-  whiteBishopSprite: {fileID: 5980770430823731249, guid: 3b9bec07db0fd0745a898e8513060c24, type: 3}
-  whiteKnightSprite: {fileID: 80656415452245694, guid: 3b9bec07db0fd0745a898e8513060c24, type: 3}
-  blackQueenSprite: {fileID: -3987328044240646586, guid: 3b9bec07db0fd0745a898e8513060c24, type: 3}
-  blackRookSprite: {fileID: -8843148425658363065, guid: 3b9bec07db0fd0745a898e8513060c24, type: 3}
-  blackBishopSprite: {fileID: -8289474492295577184, guid: 3b9bec07db0fd0745a898e8513060c24, type: 3}
-  blackKnightSprite: {fileID: 3239390697242815527, guid: 3b9bec07db0fd0745a898e8513060c24, type: 3}
+  whiteQueenSprite: {fileID: 563615206, guid: 3b9bec07db0fd0745a898e8513060c24, type: 3}
+  whiteRookSprite: {fileID: -8843148425658363065, guid: 3b9bec07db0fd0745a898e8513060c24, type: 3}
+  whiteBishopSprite: {fileID: -1757226610248740884, guid: 3b9bec07db0fd0745a898e8513060c24, type: 3}
+  whiteKnightSprite: {fileID: -8289474492295577184, guid: 3b9bec07db0fd0745a898e8513060c24, type: 3}
+  blackQueenSprite: {fileID: 1780598930, guid: 3b9bec07db0fd0745a898e8513060c24, type: 3}
+  blackRookSprite: {fileID: 1293698378508096860, guid: 3b9bec07db0fd0745a898e8513060c24, type: 3}
+  blackBishopSprite: {fileID: 5980770430823731249, guid: 3b9bec07db0fd0745a898e8513060c24, type: 3}
+  blackKnightSprite: {fileID: 8202877360452434167, guid: 3b9bec07db0fd0745a898e8513060c24, type: 3}
 --- !u!224 &312881368
 RectTransform:
   m_ObjectHideFlags: 0

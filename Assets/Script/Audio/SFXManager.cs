@@ -31,7 +31,6 @@ public class AudioManager : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
     }
 
-    // --- Public Methods to Play Sounds ---
     public void PlayCaptureSound() => PlaySound(captureSound);
     public void PlayCheckSound() => PlaySound(checkSound, 0.7f);
     public void PlayCastleSound() => PlaySound(castleSound);

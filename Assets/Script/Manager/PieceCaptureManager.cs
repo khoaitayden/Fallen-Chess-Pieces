@@ -6,10 +6,9 @@ public class PieceCaptureManager : MonoBehaviour
 {
     public static PieceCaptureManager Instance { get; private set; }
 
-    private List<ChessPiece> _whiteCapturedPieces = new List<ChessPiece>(); // Pieces captured by White
-    private List<ChessPiece> _blackCapturedPieces = new List<ChessPiece>(); // Pieces captured by Black
+    private List<ChessPiece> _whiteCapturedPieces = new List<ChessPiece>();
+    private List<ChessPiece> _blackCapturedPieces = new List<ChessPiece>();
 
-    // The event sends the piece that was just captured AND the full list of captures for that side.
     public event Action<ChessPiece, List<ChessPiece>> OnPieceCaptured;
 
     private void Awake()
