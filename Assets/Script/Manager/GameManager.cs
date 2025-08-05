@@ -157,19 +157,33 @@ public class GameManager : MonoBehaviour
     public void CompletePowerTransfer(ChessPiece targetPiece)
     {
         PowerManager.Instance.GrantPower(targetPiece, _pendingPowerType);
-        ResumeTurnAfterChoice(targetPiece);
+        
+        // Cleanup the UI and state first.
+        ChangeState(GameState.Playing);
+        UIManager.Instance.HidePowerTransferPanel();
+        if (GetCurrentPlayer() is HumanPlayer human)
+        {
+            human.DisablePowerTransferInput();
+            human.ClearAllHighlights();
+        }
+        
+        // NOW, the turn can properly end.
+        EndTurn();
     }
 
     public void FinalizePawnPromotion(PieceType newPieceType)
     {
         if (_pawnToPromote == null) return;
         
-        if (GetCurrentPlayer() is HumanPlayer hp) hp.ClearAllHighlights();
-        UIManager.Instance.HidePromotionPanel();
-
         ChessPieceManager.Instance.PromotePawn(_pawnToPromote, newPieceType);
         _pawnToPromote = null;
-        ResumeTurnAfterChoice(null);
+
+        // Cleanup the UI and state first.
+        ChangeState(GameState.Playing);
+        UIManager.Instance.HidePromotionPanel();
+        if (GetCurrentPlayer() is HumanPlayer hp) hp.ClearAllHighlights();
+
+        // NOW, the turn can properly end.
         EndTurn();
     }
     
