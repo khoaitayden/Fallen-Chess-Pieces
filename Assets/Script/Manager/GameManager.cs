@@ -111,21 +111,24 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.ShowPowerTransferPanel(isWhite, powerType);
         
         Player playerToChoose = isWhite ? GetWhitePlayer() : GetBlackPlayer();
-        if (playerToChoose is HumanPlayer)
-        {
-            BoardPresenter.Instance.OrientBoardToPlayer(isWhite);
-        }
-
         if (playerToChoose is HumanPlayer humanPlayer)
         {
             humanPlayer.ClearAllHighlights();
             humanPlayer.EnablePowerTransferInput();
             humanPlayer.HighlightPowerTargets();
         }
+        // --- THIS IS THE FIX ---
         else if (playerToChoose is AIPlayer)
         {
+            // The AI chooses instantly. We grant the power and let the
+            // original ProcessMove method continue to the EndTurn() call.
+            // We DO NOT call CompletePowerTransfer or ResumeTurnAfterChoice here.
             ChessPiece targetPiece = validTargets[Random.Range(0, validTargets.Count)];
-            CompletePowerTransfer(targetPiece);
+            PowerManager.Instance.GrantPower(targetPiece, _pendingPowerType);
+            
+            // The choice has been made, so the state can return to normal.
+            ChangeState(GameState.Playing); 
+            UIManager.Instance.HidePowerTransferPanel();
         }
     }
 
