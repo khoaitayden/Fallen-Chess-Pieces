@@ -83,11 +83,15 @@ public class TurnManager : MonoBehaviour
         }
 
         IsWhiteTurn = !IsWhiteTurn;
-        if (GameManager.Instance.CurrentGameMode == GameMode.Local && 
-            GameManager.Instance.CurrentState == GameState.Playing) // <-- Add this check
+        
+        // --- THIS IS THE FIX ---
+        // The board should always re-orient in local mode when the turn switches,
+        // regardless of whether the game is in a 'Playing' or 'PowerTransfer' state.
+        if (GameManager.Instance.CurrentGameMode == GameMode.Local)
         {
             BoardPresenter.Instance.OrientBoardToPlayer(IsWhiteTurn);
         }
+        // -----------------------
     }
 
     private void HandleTimeout()
