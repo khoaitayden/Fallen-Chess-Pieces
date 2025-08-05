@@ -33,12 +33,24 @@ public class ChessPiece : MonoBehaviour, IClickable
     {
         switch (_pieceType)
         {
+            // --- Standard Pieces ---
             case PieceType.Pawn:   _logic = new PawnLogic();   break;
             case PieceType.Rook:   _logic = new RookLogic();   break;
             case PieceType.Knight: _logic = new KnightLogic(); break;
             case PieceType.Bishop: _logic = new BishopLogic(); break;
             case PieceType.Queen:  _logic = new QueenLogic();  break;
             case PieceType.King:   _logic = new KingLogic();   break;
+
+            // --- ADD THESE NEW CASES for Combination Pieces ---
+            case PieceType.KnightRook:         _logic = new KnightRookLogic();         break;
+            case PieceType.KnightBishop:       _logic = new KnightBishopLogic();       break;
+            case PieceType.RookBishop:         _logic = new RookBishopLogic();         break; // This is a QueenLogic
+            case PieceType.KnightBishopRook:   _logic = new KnightBishopRookLogic();   break;
+            // ----------------------------------------------------
+
+            default:
+                Debug.LogError($"No logic found in ChessPiece.CreateLogic for type {_pieceType}");
+                break;
         }
     }
 
@@ -46,12 +58,22 @@ public class ChessPiece : MonoBehaviour, IClickable
     // They ensure the logic is always updated with the piece's current state.
     public List<Vector2Int> GetPossibleMoves(BoardState boardState)
     {
+        // Safety check
+        if (_logic == null) {
+            Debug.LogError($"Piece {this.name} at {_boardPosition} has a null logic brain!");
+            return new List<Vector2Int>();
+        }
         _logic.Initialize(this.IsWhite, this._boardPosition, this._hasMoved, this.Type);
         return _logic.GetPossibleMoves(boardState);
     }
 
     public List<Vector2Int> GetAttackMoves(BoardState boardState)
     {
+        // Safety check
+        if (_logic == null) {
+            Debug.LogError($"Piece {this.name} at {_boardPosition} has a null logic brain!");
+            return new List<Vector2Int>();
+        }
         _logic.Initialize(this.IsWhite, this._boardPosition, this._hasMoved, this.Type);
         return _logic.GetAttackMoves(boardState);
     }
