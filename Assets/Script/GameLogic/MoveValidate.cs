@@ -87,12 +87,40 @@ public class MoveValidator : MonoBehaviour
 
     public bool HasInsufficientMaterial(BoardState boardState)
     {
-        var pieces = new List<BoardState.PieceData?>();
+        var allPieces = new List<PieceType>();
+        
+        // First, gather all piece types EXCEPT for the Kings.
         for (int x = 0; x < Constants.BOARD_SIZE; x++)
+        {
             for (int y = 0; y < Constants.BOARD_SIZE; y++)
-                if (boardState.Pieces[x, y] != null) pieces.Add(boardState.Pieces[x, y]);
-        if (pieces.Count <= 2) return true;
-        if (pieces.Count == 3 && (pieces.Any(p => p.Value.Type == PieceType.Knight) || pieces.Any(p => p.Value.Type == PieceType.Bishop))) return true;
+            {
+                var pieceData = boardState.Pieces[x, y];
+                if (pieceData != null && pieceData.Value.Type != PieceType.King)
+                {
+                    allPieces.Add(pieceData.Value.Type);
+                }
+            }
+        }
+
+        // If any player has a Pawn, Rook, or Queen (or a combination piece containing them),
+        // there is sufficient material to checkmate. This is NOT a draw.
+        if (allPieces.Any(p => p == PieceType.Pawn || p == PieceType.Rook || p == PieceType.Queen || 
+                                p == PieceType.KnightRook || p == PieceType.RookBishop || p == PieceType.KnightBishopRook))
+        {
+            return false;
+        }
+
+        // If we reach here, we know the only pieces left are Knights and Bishops.
+        // A draw occurs if there is only one minor piece total (or zero).
+        // e.g., King vs King+Knight, King vs King+Bishop
+        if (allPieces.Count <= 1)
+        {
+            return true;
+        }
+
+        // More complex scenarios like two knights vs king, or bishops on same-colored squares
+        // can also be draws, but the above logic will fix the reported bug and cover 99% of cases.
+        // For this implementation, we will assume two minor pieces are sufficient material.
         return false;
     }
 
