@@ -164,12 +164,14 @@ public class GameManager : MonoBehaviour
     {
         if (_pawnToPromote == null) return;
         
-        if (GetCurrentPlayer() is HumanPlayer hp) hp.ClearAllHighlights();
-        UIManager.Instance.HidePromotionPanel();
-
+        
         ChessPieceManager.Instance.PromotePawn(_pawnToPromote, newPieceType);
         _pawnToPromote = null;
-        ResumeTurnAfterChoice(null);
+
+        ChangeState(GameState.Playing);
+        UIManager.Instance.HidePromotionPanel();
+        if (GetCurrentPlayer() is HumanPlayer hp) hp.ClearAllHighlights();
+
         EndTurn();
     }
     
@@ -180,13 +182,11 @@ public class GameManager : MonoBehaviour
             human.DisablePowerTransferInput();
             human.ClearAllHighlights();
         }
-        
-        // 2) Hide any leftover UI:
+
         ChangeState(GameState.Playing);
         UIManager.Instance.HidePowerTransferPanel();
         UIManager.Instance.HidePromotionPanel();
         
-        // 3) Let the new active player start listening:
         NotifyCurrentPlayer();
     }
 
