@@ -91,21 +91,16 @@ public class GameManager : MonoBehaviour
     
     private void HandlePowerTransferRequired(bool isWhite, PieceType powerType)
     {
-        if (GetCurrentPlayer() is HumanPlayer h) {
-            h.DisablePowerTransferInput();
-            h.ClearAllHighlights();
-        }
-        UIManager.Instance.HidePowerTransferPanel();
-
+        // First, check for the "no valid targets" edge case.
         List<ChessPiece> validTargets = FindValidPowerTargets(isWhite);
         if (validTargets.Count == 0)
         {
-            Debug.Log($"No valid power targets.  Skipping transfer for {(isWhite?"White":"Black")}.");
-            ChangeState(GameState.Playing);
-            EndTurn();
-            return;
+            Debug.Log($"<color=orange>No valid power targets for {(isWhite ? "White" : "Black")}. Power of {powerType} is lost.</color>");
+            // The transfer is skipped. Simply return and let the turn finish naturally.
+            return; 
         }
 
+        // Now we know a transfer IS required, proceed with the state change.
         _pendingPowerType = powerType;
         ChangeState(GameState.PowerTransfer);
         UIManager.Instance.ShowPowerTransferPanel(isWhite, powerType);
@@ -117,16 +112,12 @@ public class GameManager : MonoBehaviour
             humanPlayer.EnablePowerTransferInput();
             humanPlayer.HighlightPowerTargets();
         }
-        // --- THIS IS THE FIX ---
         else if (playerToChoose is AIPlayer)
         {
-            // The AI chooses instantly. We grant the power and let the
-            // original ProcessMove method continue to the EndTurn() call.
-            // We DO NOT call CompletePowerTransfer or ResumeTurnAfterChoice here.
             ChessPiece targetPiece = validTargets[Random.Range(0, validTargets.Count)];
             PowerManager.Instance.GrantPower(targetPiece, _pendingPowerType);
             
-            // The choice has been made, so the state can return to normal.
+            // Let the original move finish by simply returning the state to playing.
             ChangeState(GameState.Playing); 
             UIManager.Instance.HidePowerTransferPanel();
         }
