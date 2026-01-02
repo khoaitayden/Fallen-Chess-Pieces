@@ -4,6 +4,8 @@ Main idea: When two same piece (rook, knight, bishop, queen) got captured, king 
 
 This project in current state is full of AI code and buggy stuff that im not fix and touch anytime soon
 
+Check branch to see process, main doesnt contain anything
+
 Lesson from this project
 - unity mirror networking
 - AI code is not that good so have to check a f*k ton of stuff before push to production
